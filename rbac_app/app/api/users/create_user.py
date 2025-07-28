@@ -5,7 +5,7 @@ from app.db.session import get_db
 from app.core.dependencies import get_current_user
 from app.models.users import User
 from app.schemas.user_create_schema import CreateUserRequest
-from app.schemas.user import UserResponse
+from app.schemas.create_admin import UserResponse
 from app.services.user_create_service import create_user
 
 router = APIRouter(tags=["Create User (by Admin or Superadmin)"])

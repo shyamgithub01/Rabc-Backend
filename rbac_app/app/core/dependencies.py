@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.users import User
-from app.schemas.user import RoleEnum
+from app.schemas.create_admin import RoleEnum
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

@@ -27,3 +27,7 @@ class AssignPermissionRequest(BaseModel):
     user_id: int
     module_id: int
     permissions: List[PermissionEnum]
+
+class AssignPermissionRequest(BaseModel):
+    module_id: int
+    permissions: List[PermissionEnum]

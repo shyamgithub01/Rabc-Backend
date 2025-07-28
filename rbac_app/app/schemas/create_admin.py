@@ -12,7 +12,7 @@ class CreateAdminRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
-    role: RoleEnum = RoleEnum.admin  
+    # role: RoleEnum = RoleEnum.admin  
 
 class UserResponse(BaseModel):
     id: int
