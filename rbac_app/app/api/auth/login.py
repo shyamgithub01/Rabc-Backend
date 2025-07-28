@@ -8,7 +8,7 @@ from app.db.session import get_db
 
 router = APIRouter(tags=["Auth"])
 
-@router.post("/auth/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse)
 async def login(
     data: LoginRequest,
     db: AsyncSession = Depends(get_db),

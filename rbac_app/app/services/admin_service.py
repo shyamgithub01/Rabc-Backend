@@ -37,9 +37,3 @@ async def create_admin(data: CreateAdminRequest, current_user: User, db: AsyncSe
     return new_admin
 
 
-async def get_all_admins(db: AsyncSession) -> list[User]:
-    result = await db.execute(
-        select(User).where(User.role == RoleEnum.admin)
-    )
-    admins = result.scalars().all()
-    return admins

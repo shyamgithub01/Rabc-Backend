@@ -8,7 +8,7 @@ from app.db.session import get_db
 
 router = APIRouter(tags=["Auth"])
 
-@router.post("/auth/signup", response_model=TokenResponse)
+@router.post("/signup", response_model=TokenResponse)
 async def signup(
     data: SignupRequest,
     db: AsyncSession = Depends(get_db),

@@ -3,12 +3,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-
+from app.api.users.delete_permission import router as delete_permision
 from app.api.auth import login, signup
 from app.db.init_db import init_db
 from app.core.config import settings
 from app.api.users.create_admins import router as create_admin
 from app.api.users.permissions import router as manage_permission
+from app.api.users.user_with_permissions import router as users_with_permission
+
 
 # Lifespan context for startup/shutdown
 @asynccontextmanager
@@ -35,5 +37,10 @@ app.include_router(login.router)
 app.include_router(signup.router)
 app.include_router(create_admin)
 app.include_router(manage_permission)
+app.include_router(delete_permision)
+app.include_router(users_with_permission)
+
+
+
 
 

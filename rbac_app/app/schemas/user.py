@@ -20,8 +20,24 @@ class UserResponse(BaseModel):
     email: EmailStr
     # role: RoleEnum
     created_by: Optional[int] = None
+    
 
     model_config = ConfigDict(from_attributes=True)
 
 class ListUsersResponse(BaseModel):
     users: List[UserResponse]
+
+
+
+
+class ModulePermissionInfo(BaseModel):
+    module_name: str
+    permissions: List[str]
+
+class UserWithPermissionsResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    created_by: Optional[int] = None
+    role: str
+    modules: List[ModulePermissionInfo]
