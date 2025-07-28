@@ -9,7 +9,10 @@ from app.db.init_db import init_db
 from app.core.config import settings
 from app.api.users.create_admins import router as create_admin
 from app.api.users.permissions import router as manage_permission
+from app.api.users.user_create import router as create_user
 from app.api.users.user_with_permissions import router as users_with_permission
+from app.api.users.user_permission_assign import router as users_permission_assign
+
 
 
 # Lifespan context for startup/shutdown
@@ -39,6 +42,10 @@ app.include_router(create_admin)
 app.include_router(manage_permission)
 app.include_router(delete_permision)
 app.include_router(users_with_permission)
+app.include_router(users_permission_assign)
+
+app.include_router(create_user)
+
 
 
 
