@@ -23,3 +23,7 @@ class UserPermissionsResponse(BaseModel):
     user_name: str
     permissions: List[UserModulePermissionResponse]
 
+class AssignPermissionRequest(BaseModel):
+    user_id: int
+    module_id: int
+    permissions: List[PermissionEnum]
