@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.user import CreateAdminRequest, UserResponse
-from app.services.admin_service import create_admin
+from app.services.admin_create_service import create_admin
 from app.core.dependencies import get_current_user
 from app.models.users import User
 from fastapi import APIRouter, Depends

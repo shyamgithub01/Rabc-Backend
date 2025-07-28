@@ -5,7 +5,7 @@ from typing import List
 from app.db.session import get_db
 from app.core.dependencies import get_superadmin_user
 from app.models.users import User
-from app.schemas.user_with_permissions import UserWithPermissionsResponse
+from app.schemas.get_all_users_with_permission import UserWithPermissionsResponse
 from app.services.user_with_permissions_service import get_users_with_permissions
 
 router = APIRouter(tags=["list of admins and the users"])

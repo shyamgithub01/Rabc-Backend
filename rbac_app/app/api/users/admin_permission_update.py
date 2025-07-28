@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.permission import AssignPermissionRequest, UserPermissionsResponse
-from app.services.permission_service import assign_permissions_to_admin
+from app.services.admin_permission_service import assign_permissions_to_admin
 from app.db.session import get_db
 from app.core.dependencies import get_current_user
 from app.models.users import User

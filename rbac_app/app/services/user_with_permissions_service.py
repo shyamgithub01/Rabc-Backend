@@ -7,8 +7,10 @@ from app.models.users import User
 from app.models.module import Module
 from app.models.permission import Permission
 from app.models.user_permission import UserPermission
-from app.schemas.user_with_permissions import UserWithPermissionsResponse, ModulePermissionInfo
-
+from app.schemas.get_all_users_with_permission import (
+    UserWithPermissionsResponse,
+    ModulePermissionInfo,
+)
 
 async def get_users_with_permissions(db: AsyncSession) -> list[UserWithPermissionsResponse]:
     result = await db.execute(

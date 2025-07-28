@@ -4,7 +4,7 @@ from app.db.session import get_db
 from app.core.dependencies import get_current_user
 from app.models.users import User
 from app.schemas.permission import AssignPermissionRequest
-from app.services.delete_service import remove_permissions_from_admin
+from app.services.admin_permission_delete_service import remove_permissions_from_admin
 
 
 router = APIRouter( tags=["Admin Permission Delete only done by SuperAdmin"])
