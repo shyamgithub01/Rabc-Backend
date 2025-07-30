@@ -111,4 +111,3 @@ async def login_user(
     token = create_access_token(subject=user.email, custom_claims=token_payload)
     return TokenResponse(access_token=token, role=user.role.value)
 
-
