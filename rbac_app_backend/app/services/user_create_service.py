@@ -1,9 +1,8 @@
-import re
 import asyncio
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import insert, func
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -13,104 +12,78 @@ from app.core.security import get_password_hash
 
 logger = logging.getLogger(__name__)
 
-# Validation regexes
-EMAIL_REGEX   = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
-UPPER_REGEX   = re.compile(r"[A-Z]")
-LOWER_REGEX   = re.compile(r"[a-z]")
-DIGIT_REGEX   = re.compile(r"\d")
-SPECIAL_REGEX = re.compile(r"[^A-Za-z0-9]")
 
 async def create_user(
     payload: CreateUserRequest,
     current_user: User,
-    db: AsyncSession
+    db: AsyncSession,
 ) -> User:
-    # 1. Authorization
+    # 1) Authorization
     if current_user.role not in (RoleEnum.superadmin, RoleEnum.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only superadmins or admins can create users."
+            detail="Only superadmins or admins can create users.",
         )
 
-    # 2. Normalize + validate inputs
-    username = payload.username.strip()
-    email    = payload.email.strip().lower()
-    password = payload.password or ""
+    # 2) Inputs already validated/normalized by Pydantic
+    username = payload.username
+    email = str(payload.email)  # lowercased by validator
+    password = payload.password
 
-    if not username:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Username cannot be blank.")
-    if " " in username or len(username) > 50:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Username must be 1–50 chars with no spaces.")
-    if not EMAIL_REGEX.match(email):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid email format.")
-    if len(password) < 8:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must be at least 8 characters.")
-    if not UPPER_REGEX.search(password):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must include at least one uppercase letter.")
-    if not LOWER_REGEX.search(password):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must include at least one lowercase letter.")
-    if not DIGIT_REGEX.search(password):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must include at least one digit.")
-    if not SPECIAL_REGEX.search(password):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must include at least one special character.")
+    # 3) Hash password off the event loop
+    try:
+        hashed_password = await asyncio.to_thread(get_password_hash, password)
+    except Exception as e:
+        logger.error("Password hashing error", exc_info=e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password hashing failed.",
+        )
 
-    # 3. Kick off hashing in background
-    hash_task = asyncio.create_task(
-        asyncio.to_thread(get_password_hash, password)
-    )
-
-    # 4. Build INSERT…RETURNING to get back the new user in one go
+    # 4) Insert … returning projection
     stmt = (
         insert(User)
         .values(
             username=username,
             email=email,
-            hashed_password=await hash_task,
+            hashed_password=hashed_password,
             role=RoleEnum.user,
-            created_by=current_user.id
+            created_by=current_user.id,
         )
         .returning(
             User.id,
             User.username,
             User.email,
             User.role,
-            User.created_by
+            User.created_by,
         )
     )
 
-    # 5. Execute & commit (single DB round‑trip)
     try:
         result = await db.execute(stmt)
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        # figure out if it was username or email conflict
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username or email already in use."
+            detail="Username or email already in use.",
         )
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error("Error creating user", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Unexpected database error."
+            detail="Unexpected database error.",
         )
 
-    # 6. Construct a lightweight User object without refresh
+    # 5) Build a lightweight User instance to return (no extra round trip)
     row = result.one()
     new_user = User(
-        id           = row.id,
-        username     = row.username,
-        email        = row.email,
-        hashed_password="",  # never expose the hash
-        role         = row.role,
-        created_by   = row.created_by
+        id=row.id,
+        username=row.username,
+        email=row.email,
+        hashed_password="",  # never expose hash
+        role=row.role,
+        created_by=row.created_by,
     )
     return new_user

@@ -1,6 +1,5 @@
-import re
-import logging
 import asyncio
+import logging
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, insert
@@ -13,48 +12,39 @@ from app.core.security import get_password_hash, verify_password, create_access_
 
 logger = logging.getLogger(__name__)
 
-EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
-
 
 async def signup_superadmin(
     db: AsyncSession,
     data: SignupRequest,
 ) -> MessageResponse:
-    username = data.username.strip()
-    email = data.email.strip().lower()     # ensure stored lowercase
-    password = data.password or ""
+    """
+    Creates the one-and-only superadmin.
+    All input validation is handled by Pydantic schemas.
+    """
+    username = data.username
+    email = str(data.email)  # already lowercased by validator
+    password = data.password
 
-    # Basic input checks
-    if not username:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Username cannot be blank.")
-    if " " in username or len(username) > 50:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Username must be 1–50 chars with no spaces.")
-    if not EMAIL_REGEX.match(email):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid email format.")
-    if len(password) < 8:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            "Password must be at least 8 characters.")
-
-    # Hash right away (still off the loop so signup isn't totally blocking)
-    hash_task = asyncio.create_task(asyncio.to_thread(get_password_hash, password))
-
-    # Check existing superadmin via scalar lookup
+    # Check if a superadmin already exists
     try:
         exists = await db.scalar(
-            select(User.id).where(User.role == RoleEnum.superadmin)
+            select(User.id).where(User.role == RoleEnum.superadmin).limit(1)
         )
     except SQLAlchemyError as e:
-        hash_task.cancel()
         logger.error("DB error checking superadmin", exc_info=e)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Database error.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
+
     if exists:
-        hash_task.cancel()
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Superadmin already exists.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Superadmin already exists.")
 
-    hashed = await hash_task
+    # Hash password (off the main loop)
+    try:
+        hashed = await asyncio.to_thread(get_password_hash, password)
+    except Exception as e:
+        logger.error("Password hashing error", exc_info=e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Password hashing failed.")
 
-    # Single INSERT
+    # Insert superadmin
     try:
         await db.execute(
             insert(User).values(
@@ -67,12 +57,17 @@ async def signup_superadmin(
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            "An account with this username or email already exists.")
+        # Unique constraint on username/email
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this username or email already exists.",
+        )
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error("DB error creating superadmin", exc_info=e)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unexpected database error.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected database error."
+        )
 
     return MessageResponse(message="Superadmin created successfully. Please log in to continue.")
 
@@ -81,33 +76,27 @@ async def login_user(
     db: AsyncSession,
     data: LoginRequest,
 ) -> TokenResponse:
-    email = data.email.strip().lower()
-    password = data.password or ""
+    """
+    Authenticates a user and returns a JWT that includes `sub` (email) and `role`.
+    Input validation handled by Pydantic.
+    """
+    email = str(data.email)   # already lowercased by validator
+    password = data.password
 
-    # Validate inputs
-    if not EMAIL_REGEX.match(email):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid email format.")
-    if not password:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Password cannot be blank.")
-
+    # Fetch user record
     try:
-        # Fetch full user to get hashed_password and role
-        user = await db.scalar(
-            select(User).where(User.email == email)
-        )
+        user = await db.scalar(select(User).where(User.email == email).limit(1))
     except SQLAlchemyError as e:
         logger.error("DB error during login lookup", exc_info=e)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Database error.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
+    # Verify credentials (constant-time hash check inside verify_password)
     if not user or not verify_password(password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password.")
+        # Keep message generic for security
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
 
-    # Include both subject and role in the token payload
-    token_payload = {
-        "sub": user.email,
-        "role": user.role.value
-    }
+    # JWT payload (your create_access_token should set exp/iat, etc.)
+    token_payload = {"sub": user.email, "role": user.role.value}
+    access_token = create_access_token(subject=user.email, custom_claims=token_payload)
 
-    token = create_access_token(subject=user.email, custom_claims=token_payload)
-    return TokenResponse(access_token=token, role=user.role.value)
-
+    return TokenResponse(access_token=access_token, role=user.role.value)

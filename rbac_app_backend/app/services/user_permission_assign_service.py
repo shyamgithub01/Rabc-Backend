@@ -1,4 +1,4 @@
-from typing import List
+
 import logging
 
 from fastapi import HTTPException, status
