@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Optional
 from enum import Enum
 
 from pydantic import BaseModel, EmailStr, constr, field_validator, ConfigDict
@@ -21,7 +21,7 @@ UsernameStr = Annotated[
     ),
 ]
 
-# NOTE: keep min_length=8 to match common security expectations
+# Keep min_length=8 to match common security expectations
 PasswordStr = Annotated[str, constr(min_length=8, max_length=128)]
 
 
@@ -54,12 +54,14 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,
         extra="forbid",
-        json_schema_extra={"example": {"email": "jane@example.com", "password": "StrongPassw0rd!"}},
+        json_schema_extra={
+            "example": {"email": "jane@example.com", "password": "StrongPassw0rd!"}
+        },
     )
 
     email: EmailStr
-    # Allow empty-like passwords? No. Enforce at least 1 char (or 8 if you prefer).
-    password: Annotated[str, constr(min_length=1)]
+    # Use the same policy as signup (≥ 8 chars) for consistency
+    password: PasswordStr
 
     @field_validator("email", mode="before")
     @classmethod
@@ -68,13 +70,25 @@ class LoginRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer",
+                "role": "admin",
+                "expires_in": 3600,
+                "exp": 1735689600,
+            }
+        },
+    )
     access_token: str
     token_type: Literal["bearer"] = "bearer"
     role: RoleLiteral
+
     # Optional: include expires_in (seconds) or exp (unix) if you want
-    # expires_in: Optional[int] = None
-    # exp: Optional[int] = None
+    expires_in: Optional[int] = None
+    exp: Optional[int] = None
 
 
 class TokenPayload(BaseModel):
@@ -88,5 +102,8 @@ class TokenPayload(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"example": {"message": "Superadmin created successfully."}},
+    )
     message: str
