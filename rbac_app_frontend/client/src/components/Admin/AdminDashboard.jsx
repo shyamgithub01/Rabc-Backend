@@ -45,8 +45,32 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+  fetchUsers(); // initial fetch
+
+  const interval = setInterval(async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const decoded = decodeToken(token);
+      const adminEmail = decoded?.sub;
+
+      const res = await api.get("/users-with-permissions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const allUsers = res.data;
+      const currentAdmin = allUsers.find((u) => u.email === adminEmail);
+
+      if (currentAdmin) {
+        setAdminId(currentAdmin.id);
+        setUsers(allUsers);
+      }
+    } catch (err) {
+      console.error("Auto-refresh failed:", err);
+    }
+  }, 1000); 
+
+  return () => clearInterval(interval);
+}, []);
 
   const openManageUser = (user) => {
     setSelectedUser(user);

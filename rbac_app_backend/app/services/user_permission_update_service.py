@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -70,7 +70,6 @@ async def update_user_permissions(
                 detail="You do not have access to manage this module."
             )
 
-        # Check if trying to assign permission not held by admin
         unauthorized_actions = requested_actions - admin_actions
         if unauthorized_actions:
             raise HTTPException(
@@ -81,7 +80,7 @@ async def update_user_permissions(
                 )
             )
 
-    # 6. Check already assigned permissions
+    # 6. Check already assigned permissions for this module
     result = await db.execute(
         select(Permission.action)
         .join(UserPermission, UserPermission.permission_id == Permission.id)
@@ -92,29 +91,21 @@ async def update_user_permissions(
     )
     already_assigned = set(result.scalars().all())
 
-    # 7. Strict duplicate check
-    duplicates = [action for action in requested_actions if action in already_assigned]
+    # 7. Reject if even one permission is already assigned (strict mode)
+    duplicates = requested_actions & already_assigned
     if duplicates:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot update because these permissions are already assigned: {duplicates}"
+            detail=f"Cannot assign already granted permission(s): {', '.join(sorted(duplicates))}"
         )
 
     # 8. Validate requested permissions exist in DB
-    try:
-        actions_tuple = tuple(requested_actions)
-        result = await db.execute(
-            select(Permission).where(Permission.action.in_(actions_tuple))
-        )
-        permission_objs = result.scalars().all()
-    except SQLAlchemyError as e:
-        logger.error("DB error fetching permissions", exc_info=e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error fetching permissions."
-        )
+    result = await db.execute(
+        select(Permission).where(Permission.action.in_(tuple(requested_actions)))
+    )
+    permission_objs = result.scalars().all()
 
-    # 9. Handle invalid actions
+    # 9. Validate none are missing
     found_actions = {perm.action for perm in permission_objs}
     missing = requested_actions - found_actions
     if missing:
@@ -123,23 +114,7 @@ async def update_user_permissions(
             detail=f"Invalid permission(s): {', '.join(sorted(missing))}"
         )
 
-    # 10. Delete existing user-module permissions
-    try:
-        await db.execute(
-            delete(UserPermission).where(
-                UserPermission.user_id == target_user_id,
-                UserPermission.module_id == payload.module_id
-            )
-        )
-    except SQLAlchemyError as e:
-        await db.rollback()
-        logger.error("DB error deleting old permissions", exc_info=e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error while removing old permissions."
-        )
-
-    # 11. Insert new permissions
+    # ✅ 10. Insert only new permissions (do not delete)
     try:
         new_permissions = [
             UserPermission(
