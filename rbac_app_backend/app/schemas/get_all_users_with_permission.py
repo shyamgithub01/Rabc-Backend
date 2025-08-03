@@ -7,7 +7,7 @@ class ModulePermissionInfo(BaseModel):
 
 class UserWithPermissionsResponse(BaseModel):
     id: int
-    username: str
+    
     email: EmailStr
     role: str
     created_by: Optional[int] = None

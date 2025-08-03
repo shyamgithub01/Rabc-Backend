@@ -9,7 +9,7 @@ from app.services.user_permission_update_service import update_user_permissions
 
 router = APIRouter(tags=["Update User Permissions"])
 
-@router.patch("/users/{user_id}/permissions")
+@router.put("/users/{user_id}/permissions")
 async def update_user_permissions_view(
     user_id: int = Path(..., description="User ID whose permissions will be updated"),
     payload: UpdateUserPermissionRequest = Body(...),

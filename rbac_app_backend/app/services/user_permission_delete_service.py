@@ -24,6 +24,7 @@ async def remove_permissions_from_user(
     Remove a specific set of permissions from a user on one module.
     - Only admins & superadmins may call.
     - Admins only for modules they already manage.
+    - Only permissions for regular users can be removed.
     """
 
     # 1. Only admin or superadmin
@@ -37,6 +38,13 @@ async def remove_permissions_from_user(
     target = await db.get(User, target_user_id)
     if not target:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Target user not found.")
+
+    # 2.5 NEW: Prevent modifying admins or superadmins
+    if target.role != RoleEnum.user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permissions can only be removed from users, not from admins or superadmins."
+        )
 
     # 3. Ensure module exists
     module = await db.get(Module, payload.module_id)

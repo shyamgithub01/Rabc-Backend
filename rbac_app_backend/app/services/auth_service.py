@@ -3,7 +3,7 @@ import logging
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import  SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import User, RoleEnum
@@ -44,7 +44,7 @@ async def signup_superadmin(
 
         # 4. Create ORM object (simpler than core‐insert)
         new_user = User(
-            username=data.username,
+            
             email=str(data.email),
             hashed_password=hashed,
             role=RoleEnum.superadmin,

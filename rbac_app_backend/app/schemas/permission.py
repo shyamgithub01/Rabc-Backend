@@ -16,7 +16,8 @@ class AssignPermissionRequest(BaseModel):
     For endpoints that take user_id in the body.
     """
     model_config = ConfigDict(extra="forbid")
-    user_id: int
+    
+
     module_id: int
     permissions: List[PermissionEnum] = Field(min_length=1)
 
@@ -64,5 +65,5 @@ class UserModulePermissionResponse(BaseModel):
 class UserPermissionsResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     user_id: int
-    user_name: str
+    
     permissions: List[UserModulePermissionResponse]

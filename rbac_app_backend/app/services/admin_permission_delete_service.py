@@ -22,18 +22,6 @@ async def remove_permissions_from_admin(
     current_user: User,
     db: AsyncSession,
 ):
-    """
-    Remove specified permissions from an admin user for a given module.
-
-    Edge cases handled:
-      - only superadmins may call this → 403
-      - user not found → 404
-      - user exists but is not admin → 400
-      - module not found → 404
-      - none of the requested permission actions are valid → 400
-      - user does not actually have those permissions → 404
-    """
-
     # 1) Authorization
     if current_user.role != RoleEnum.superadmin:
         raise HTTPException(
@@ -62,75 +50,74 @@ async def remove_permissions_from_admin(
             detail="Module not found.",
         )
 
-    # 4) Resolve requested permission IDs (normalize/dedupe done in schema if used)
-    try:
-        actions = [p.value for p in permissions]
-        if not actions:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No permissions provided.",
-            )
-
-        perm_id_rows = await db.execute(
-            select(Permission.id).where(Permission.action.in_(actions))
+    # 4) Resolve permission IDs from requested actions
+    actions = [p.value for p in permissions]
+    if not actions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No permissions provided.",
         )
-        permission_ids = list(perm_id_rows.scalars())
+
+    try:
+        result = await db.execute(
+            select(Permission.id, Permission.action).where(Permission.action.in_(actions))
+        )
+        perm_rows = result.all()
+        requested_perm_ids = [row[0] for row in perm_rows]
     except SQLAlchemyError as e:
         logger.error("DB error resolving permissions", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error while resolving permissions.",
+            detail="Error fetching permission IDs.",
         )
 
-    if not permission_ids:
+    if not requested_perm_ids:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No valid permissions found to remove.",
         )
 
-    # 5) Ensure the user actually has those permissions for this module
+    # 5) Fetch only those permissions that are actually assigned
     try:
-        existing_rows = await db.execute(
+        result = await db.execute(
             select(UserPermission.id).where(
                 UserPermission.user_id == user_id,
                 UserPermission.module_id == module_id,
-                UserPermission.permission_id.in_(permission_ids),
+                UserPermission.permission_id.in_(requested_perm_ids)
             )
         )
-        existing_ids = list(existing_rows.scalars())
+        assigned_user_permission_ids = list(result.scalars())
     except SQLAlchemyError as e:
-        logger.error("DB error checking existing user permissions", exc_info=e)
+        logger.error("DB error checking assigned permissions", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error during permission check.",
+            detail="Error checking assigned permissions.",
         )
 
-    if not existing_ids:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User does not have the specified permissions in this module.",
-        )
+    # 6) If no matching assigned permissions found
+    if not assigned_user_permission_ids:
+        return {"detail": "No assigned permissions found to delete."}
 
-    # 6) Delete them
-    stmt = delete(UserPermission).where(
-        UserPermission.id.in_(existing_ids)
-    )
-
+    # 7) Delete only assigned permissions
     try:
-        result = await db.execute(stmt)
-        deleted_count = result.rowcount or 0
+        delete_stmt = delete(UserPermission).where(
+            UserPermission.id.in_(assigned_user_permission_ids)
+        )
+        result = await db.execute(delete_stmt)
         await db.commit()
+        deleted_count = result.rowcount or 0
     except SQLAlchemyError as e:
         await db.rollback()
-        logger.error("Error removing permissions", exc_info=e)
+        logger.error("DB error during deletion", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error during permission removal.",
+            detail="Database error during deletion.",
         )
 
-    # 7) Audit log & response
     logger.info(
         "Superadmin %s removed %d permission(s) for admin %s in module %s",
         current_user.id, deleted_count, user_id, module_id
     )
-    return {"detail": f"Removed {deleted_count} permission(s) successfully."}
+
+    return {"detail": f"Removed {deleted_count} assigned permission(s) successfully."}
+# admin permission delete service

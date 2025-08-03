@@ -20,13 +20,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const solutionsMenu = [
-    { title: "Smart Home", icon: "🏠", path: "/solutions/smart-home" },
-    { title: "Industrial IoT", icon: "🏭", path: "/solutions/industrial" },
-    { title: "Healthcare", icon: "⚕️", path: "/solutions/healthcare" },
-    { title: "Smart Cities", icon: "🏙️", path: "/solutions/smart-cities" },
-    { title: "Agriculture", icon: "🌱", path: "/solutions/agriculture" },
-  ];
+ 
 
   return (
     <nav 
@@ -57,88 +51,12 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className="text-blue-100 hover:text-white transition-colors duration-300"
-            >
-              Home
-            </Link>
-            
-            <Link 
-              to="/about" 
-              className="text-blue-100 hover:text-white transition-colors duration-300"
-            >
-              About Us
-            </Link>
-            
-            <div 
-              className="relative"
-              onMouseEnter={() => setIsHoveringSolutions(true)}
-              onMouseLeave={() => setIsHoveringSolutions(false)}
-            >
-              <button className="text-blue-100 hover:text-white transition-colors duration-300 flex items-center">
-                Solutions
-                <svg 
-                  className={`ml-1 h-4 w-4 transition-transform duration-200 ${isHoveringSolutions ? 'transform rotate-180' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {/* Solutions Dropdown */}
-              {isHoveringSolutions && (
-                <div className="absolute left-0 mt-2 w-64 bg-blue-800/90 backdrop-blur-lg rounded-xl shadow-2xl py-2 overflow-hidden border border-blue-600/50">
-                  {solutionsMenu.map((item, index) => (
-                    <Link 
-                      key={index}
-                      to={item.path}
-                      className="flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700/50 transition-colors duration-200 group"
-                    >
-                      <span className="text-xl mr-3 group-hover:scale-110 transition-transform duration-300">
-                        {item.icon}
-                      </span>
-                      <span className="font-medium group-hover:text-white">
-                        {item.title}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <Link 
-              to="/contact" 
-              className="text-blue-100 hover:text-white transition-colors duration-300"
-            >
-              Contact Us
-            </Link>
-            
-            <Link 
-              to="/blog" 
-              className="text-blue-100 hover:text-white transition-colors duration-300"
-            >
-              Blog
-            </Link>
-          </div>
+          
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/login" 
-              className="px-4 py-2 rounded-lg text-blue-200 hover:text-white transition-colors duration-300"
-            >
-              Login
-            </Link>
-            <Link 
-              to="/signup" 
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-lg"
-            >
-              Sign Up
-            </Link>
+            
+            
           </div>
 
           {/* Mobile Menu Button */}
@@ -255,18 +173,7 @@ const Navbar = () => {
       )}
 
       {/* Animated Connection Dots */}
-      <div className="absolute bottom-0 left-0 w-full h-2 flex justify-center">
-        {[...Array(8)].map((_, i) => (
-          <div 
-            key={i} 
-            className="w-2 h-2 bg-blue-400 rounded-full mx-1 animate-pulse"
-            style={{ 
-              animationDelay: `${i * 0.2}s`,
-              animationDuration: '1.5s'
-            }}
-          ></div>
-        ))}
-      </div>
+      
     </nav>
   );
 };

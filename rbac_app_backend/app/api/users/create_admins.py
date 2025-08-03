@@ -6,9 +6,7 @@ from app.schemas.create_admin import CreateAdminRequest, UserResponse
 from app.services.admin_create_service import create_admin
 from app.core.dependencies import get_current_user
 from app.models.users import User
-from fastapi import APIRouter, Depends
-from typing import List
-from app.db.session import get_db
+
 
 
 router = APIRouter( tags=["Create Admin only done by SuperAdmin"])

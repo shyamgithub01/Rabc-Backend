@@ -26,7 +26,7 @@ async def create_admin(
         )
 
     # 2) Inputs are already validated/normalized by Pydantic:
-    username = data.username
+    
     email = str(data.email)  # already lowercased by validator
     password = data.password
 
@@ -44,7 +44,7 @@ async def create_admin(
     stmt = (
         insert(User)
         .values(
-            username=username,
+            
             email=email,
             hashed_password=hashed_password,
             role=RoleEnum.admin,
@@ -62,7 +62,7 @@ async def create_admin(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An account with this username or email already exists.",
+            detail="An account with this  email already exists.",
         )
     except SQLAlchemyError as e:
         await db.rollback()

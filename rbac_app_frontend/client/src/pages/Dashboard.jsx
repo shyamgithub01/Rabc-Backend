@@ -35,9 +35,6 @@ function Dashboard({ logout }) {
     welcomeComponent = (
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
         <div className="flex">
-          <div className="flex-shrink-0">
-            
-          </div>
           <div className="ml-3">
             <p className="text-sm text-yellow-700">
               You don't have a recognized role assigned. Please contact support.
@@ -157,22 +154,22 @@ function Dashboard({ logout }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className=" mx-auto px-4 sm:px-6 py-6">
         {/* Header with user info and logout */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold  bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gray-700 bg-clip-text text-transparent">
               Dashboard
             </h1>
             {userEmail && (
-              <div className="flex items-center mt-3">
+              <div className="flex items-center mt-2">
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                   role === "superadmin" 
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-700 text-white"
+                    ? "bg-gradient-to-r bg-gray-700 text-white"
                     : role === "admin" 
-                      ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-                      : "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
+                      ? "bg-gradient-to-r bg-gray-700 text-white"
+                      : "bg-gradient-to-r bg-gray-700 text-white"
                 }`}>
                   {role?.toUpperCase()}
                 </span>
@@ -184,17 +181,17 @@ function Dashboard({ logout }) {
           </div>
           <button
             onClick={logout}
-            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all transform hover:-translate-y-0.5"
+            className="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50    transition-all"
           >
             Logout
-            <svg xmlns="" className="h-5 w-5 ml-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-xl">
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow">
             <div className="relative">
               <svg 
                 className="animate-spin h-12 w-12 text-blue-600" 
@@ -212,41 +209,14 @@ function Dashboard({ logout }) {
             <p className="mt-4 text-gray-600">Loading your dashboard...</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-white rounded-xl shadow overflow-hidden">
             {/* Welcome section with subtle gradient */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
+            <div className="">
               {welcomeComponent}
             </div>
             
             {/* Role-specific quick actions */}
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
-                <div className="text-sm text-gray-500">Tap to navigate</div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {getQuickActions().map((action, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-5 rounded-xl border ${action.color} transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg cursor-pointer`}
-                  >
-                    <div className="flex items-start">
-                      <div className="bg-white p-2 rounded-lg shadow-sm">
-                        {action.icon}
-                      </div>
-                      <div className="ml-4">
-                        <h3 className="text-lg font-semibold text-gray-900">{action.title}</h3>
-                        <p className="mt-1 text-sm text-gray-600">{action.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Stats section */}
-            
+           
           </div>
         )}
       </div>

@@ -1,8 +1,7 @@
-from typing import Set
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, delete, literal
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -14,116 +13,156 @@ from app.schemas.user_permission_update_schema import UpdateUserPermissionReques
 
 logger = logging.getLogger(__name__)
 
+
 async def update_user_permissions(
     target_user_id: int,
     payload: UpdateUserPermissionRequest,
     current_user: User,
     db: AsyncSession
 ):
-    """
-    Atomically replace a user's permissions on a module.
-    - Only admins & superadmins may call.
-    - Admins may only update within modules they have access to.
-    """
-
     # 1. Role check
     if current_user.role not in (RoleEnum.admin, RoleEnum.superadmin):
         raise HTTPException(
-            status.HTTP_403_FORBIDDEN,
-            "Only admins or superadmins can update permissions."
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins or superadmins can update permissions."
         )
 
-    # 2. Target user must exist and be a regular user
+    # 2. Target user must exist
     target = await db.get(User, target_user_id)
     if not target:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Target user not found.")
-    if target.role in (RoleEnum.admin, RoleEnum.superadmin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found.")
+
+    # 2.5 Only update normal users
+    if target.role != RoleEnum.user:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "Cannot modify permissions of an admin or superadmin."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permissions can only be updated for users, not for admins or superadmins."
         )
 
     # 3. Module must exist
     module = await db.get(Module, payload.module_id)
     if not module:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Module not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found.")
 
-    # 4. If caller is admin, ensure they already have access to that module
-    if current_user.role is RoleEnum.admin:
-        owned = await db.scalar(
-            select(UserPermission.id).where(
+    # 4. Permissions list must not be empty
+    requested_actions = {p.value for p in payload.permissions}
+    if not requested_actions:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Permissions list cannot be empty."
+        )
+
+    # 5. Admin permission restriction per module
+    if current_user.role == RoleEnum.admin:
+        result = await db.execute(
+            select(Permission.action)
+            .join(UserPermission, UserPermission.permission_id == Permission.id)
+            .where(
                 UserPermission.user_id == current_user.id,
                 UserPermission.module_id == payload.module_id
             )
         )
-        if not owned:
+        admin_actions = set(result.scalars().all())
+
+        if not admin_actions:
             raise HTTPException(
-                status.HTTP_403_FORBIDDEN,
-                "You do not have access to manage this module."
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have access to manage this module."
             )
 
-    # 5. Must supply at least one permission
-    requested: Set[str] = {p.value for p in payload.permissions}
-    if not requested:
+        # Check if trying to assign permission not held by admin
+        unauthorized_actions = requested_actions - admin_actions
+        if unauthorized_actions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"You cannot assign the following permission(s) you do not hold: "
+                    f"{', '.join(sorted(unauthorized_actions))}"
+                )
+            )
+
+    # 6. Check already assigned permissions
+    result = await db.execute(
+        select(Permission.action)
+        .join(UserPermission, UserPermission.permission_id == Permission.id)
+        .where(
+            UserPermission.user_id == target_user_id,
+            UserPermission.module_id == payload.module_id
+        )
+    )
+    already_assigned = set(result.scalars().all())
+
+    # 7. Strict duplicate check
+    duplicates = [action for action in requested_actions if action in already_assigned]
+    if duplicates:
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            "Permissions list cannot be empty."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot update because these permissions are already assigned: {duplicates}"
         )
 
-    # 6. Validate all requested actions exist
+    # 8. Validate requested permissions exist in DB
     try:
-        rows = await db.execute(
-            select(Permission.action).where(Permission.action.in_(requested))
+        actions_tuple = tuple(requested_actions)
+        result = await db.execute(
+            select(Permission).where(Permission.action.in_(actions_tuple))
         )
+        permission_objs = result.scalars().all()
     except SQLAlchemyError as e:
         logger.error("DB error fetching permissions", exc_info=e)
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            "Database error fetching permissions."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error fetching permissions."
         )
 
-    found = {r[0] for r in rows.all()}
-    missing = requested - found
+    # 9. Handle invalid actions
+    found_actions = {perm.action for perm in permission_objs}
+    missing = requested_actions - found_actions
     if missing:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            f"Invalid permission(s): {', '.join(sorted(missing))}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid permission(s): {', '.join(sorted(missing))}"
         )
 
-    # 7. Delete old & bulk‐insert new via INSERT…SELECT
+    # 10. Delete existing user-module permissions
     try:
-        # delete existing
         await db.execute(
             delete(UserPermission).where(
                 UserPermission.user_id == target_user_id,
                 UserPermission.module_id == payload.module_id
             )
         )
-
-        # insert fresh from a SELECT over Permission
-        insert_stmt = UserPermission.__table__.insert().from_select(
-            ["user_id", "module_id", "permission_id", "assigned_by"],
-            select(
-                literal(target_user_id),
-                literal(payload.module_id),
-                Permission.id,
-                literal(current_user.id),
-            ).where(Permission.action.in_(requested))
-        )
-        await db.execute(insert_stmt)
-        await db.commit()
-
     except SQLAlchemyError as e:
         await db.rollback()
-        logger.error("DB error updating user permissions", exc_info=e)
+        logger.error("DB error deleting old permissions", exc_info=e)
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            "Database error updating permissions."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error while removing old permissions."
+        )
+
+    # 11. Insert new permissions
+    try:
+        new_permissions = [
+            UserPermission(
+                user_id=target_user_id,
+                module_id=payload.module_id,
+                permission_id=perm.id,
+                assigned_by=current_user.id
+            )
+            for perm in permission_objs
+        ]
+        db.add_all(new_permissions)
+        await db.commit()
+    except SQLAlchemyError as e:
+        await db.rollback()
+        logger.error("DB error inserting new permissions", exc_info=e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error while assigning new permissions."
         )
 
     return {
         "detail": (
             f"Permissions for user {target_user_id} on module {payload.module_id} "
-            f"updated to: {', '.join(sorted(requested))}."
+            f"updated to: {', '.join(sorted(requested_actions))}."
         )
     }

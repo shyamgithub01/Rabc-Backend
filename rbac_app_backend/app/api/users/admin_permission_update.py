@@ -9,18 +9,17 @@ from app.models.users import User
 
 router = APIRouter(tags=['Assign Permission only done by SuperAdmin'])
 
-@router.patch(
+@router.put(  # Changed from PATCH to PUT
     "/admins/{id}/permissions",
     response_model=UserPermissionsResponse,
     status_code=status.HTTP_200_OK
 )
-async def patch_admin_permissions(
+async def put_admin_permissions(
     id: int,
     payload: AssignPermissionRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # No need to check payload.user_id anymore
     return await assign_permissions_to_admin(
         user_id=id,
         payload=payload,

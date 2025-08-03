@@ -27,19 +27,20 @@ PasswordStr = Annotated[str, constr(min_length=8, max_length=128)]
 
 class SignupRequest(BaseModel):
     model_config = ConfigDict(
-        str_strip_whitespace=True,  # trims username/email/password
+        str_strip_whitespace=True,  
         populate_by_name=True,
         extra="forbid",
         json_schema_extra={
             "example": {
-                "username": "jane_doe",
+                
+
                 "email": "jane@example.com",
                 "password": "StrongPassw0rd!",
             }
         },
     )
 
-    username: UsernameStr
+    
     email: EmailStr
     password: PasswordStr
 
@@ -104,6 +105,6 @@ class TokenPayload(BaseModel):
 class MessageResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
-        json_schema_extra={"example": {"message": "Superadmin created successfully."}},
+        json_schema_extra={"example": "Superadmin created successfully."},
     )
     message: str

@@ -26,14 +26,14 @@ class CreateAdminRequest(BaseModel):
         extra="forbid",
         json_schema_extra={
             "example": {
-                "username": "admin_01",
+                
                 "email": "admin@example.com",
                 "password": "StrongPassw0rd!",
             }
         },
     )
 
-    username: UsernameStr
+    
     email: EmailStr
     password: PasswordStr
 
@@ -47,7 +47,7 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     id: int
-    username: str
+    
     email: EmailStr
     created_by: Optional[int] = None
     # role: RoleEnum  # uncomment if you want role in this response
@@ -64,7 +64,7 @@ class ModulePermissionInfo(BaseModel):
 
 class UserWithPermissionsResponse(BaseModel):
     id: int
-    username: str
+    
     email: EmailStr
     created_by: Optional[int] = None
     role: str  # or RoleEnum

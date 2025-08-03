@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
+
+
 import Dashboard from "./pages/Dashboard";
 import { decodeToken } from "./utils/decodeToken";
 
@@ -36,10 +37,7 @@ function App() {
             userEmail ? <Navigate to="/dashboard" /> : <LoginPage setUserEmail={setUserEmail} />
           }
         />
-        <Route
-          path="/signup"
-          element={userEmail ? <Navigate to="/dashboard" /> : <SignupPage />}
-        />
+        
         <Route
           path="/dashboard"
           element={

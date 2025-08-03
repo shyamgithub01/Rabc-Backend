@@ -40,7 +40,7 @@ async def get_users_with_permissions(
     stmt = (
         select(
             User.id,
-            User.username,
+            
             User.email,
             User.role,
             User.created_by,
@@ -60,11 +60,11 @@ async def get_users_with_permissions(
 
     # 3. Group by user → module → [actions]
     user_map: dict[int, dict] = {}
-    for user_id, username, email, role, created_by, module_name, action in rows:
+    for user_id,  email, role, created_by, module_name, action in rows:
         if user_id not in user_map:
             user_map[user_id] = {
                 "id": user_id,
-                "username": username,
+                
                 "email": email,
                 "role": role,
                 "created_by": created_by,
@@ -77,7 +77,7 @@ async def get_users_with_permissions(
     return [
         UserWithPermissionsResponse(
             id=data["id"],
-            username=data["username"],
+            
             email=data["email"],
             role=data["role"],
             created_by=data["created_by"],

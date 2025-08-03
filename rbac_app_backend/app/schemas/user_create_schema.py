@@ -12,18 +12,18 @@ PasswordStr = Annotated[str, constr(min_length=8, max_length=128)]
 
 class CreateUserRequest(BaseModel):
     model_config = ConfigDict(
-        str_strip_whitespace=True,   # trims username/email/password
+        str_strip_whitespace=True, 
         extra="forbid",
         json_schema_extra={
             "example": {
-                "username": "john_doe",
+                
                 "email": "john@example.com",
                 "password": "StrongPassw0rd!",
             }
         },
     )
 
-    username: UsernameStr
+    
     email: EmailStr
     password: PasswordStr
 

@@ -1,45 +1,68 @@
-import React from "react";
-import UserCreate from "./UserCreate";
+import React, { useState } from "react";
 import UserDashboard from "./UserDashboard";
+import { FaTachometerAlt } from "react-icons/fa";
 
 function UserWelcome() {
-  return (
-    <div className="space-y-8">
-      
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-      {/* Access badge and welcome */}
-      <div className="text-center sm:text-left">
-        <div className="inline-flex items-center justify-center sm:justify-start mb-4 bg-yellow-100 text-yellow-800 rounded-full py-1 px-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5.121 17.804A4 4 0 0112 14a4 4 0 016.879 3.804A9 9 0 1012 3a9 9 0 00-6.879 14.804z"
-            />
-          </svg>
-          <span className="text-sm font-medium">User Access</span>
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+      default:
+        return (
+          <div className="space-y-8">
+            <div className="">
+              <UserDashboard />
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white text-black flex-shrink-0">
+        <div className="p-5 border-b border-gray-700">
+          <h1 className="text-xl font-bold">User Portal</h1>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Welcome User <span className="text-yellow-600">😊</span>
-        </h2>
-        <p className="mt-2 text-gray-600">Here are your modules and permissions:</p>
+        <div className="p-4">
+          <h2 className="text-sm uppercase tracking-wider text-gray-400 mb-3">
+            Navigation
+          </h2>
+          <nav>
+            <ul className="space-y-1">
+              <li>
+                <button
+                  onClick={() => setActiveTab("dashboard")}
+                  className={`w-full text-left py-2.5 px-4 flex items-center rounded-md ${
+                    activeTab === "dashboard"
+                      ? "bg-gray-700 text-white"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  <FaTachometerAlt className="mr-3" />
+                  My Dashboard
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
 
-      {/* Dashboard section */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900">My Dashboard</h3>
-          <div className="text-sm text-yellow-600 font-medium">Limited Access</div>
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        <div className="max-w-full mx-auto px-4 sm:px-6 md:px-8">
+          <div className="py-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                User Dashboard
+              </h1>
+            </div>
+            {renderContent()}
+          </div>
         </div>
-        <UserDashboard />
       </div>
     </div>
   );

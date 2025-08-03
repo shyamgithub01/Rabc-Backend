@@ -26,7 +26,7 @@ async def create_user(
         )
 
     # 2) Inputs already validated/normalized by Pydantic
-    username = payload.username
+    
     email = str(payload.email)  # lowercased by validator
     password = payload.password
 
@@ -44,7 +44,7 @@ async def create_user(
     stmt = (
         insert(User)
         .values(
-            username=username,
+            
             email=email,
             hashed_password=hashed_password,
             role=RoleEnum.user,
@@ -52,7 +52,7 @@ async def create_user(
         )
         .returning(
             User.id,
-            User.username,
+            
             User.email,
             User.role,
             User.created_by,
@@ -80,7 +80,7 @@ async def create_user(
     row = result.one()
     new_user = User(
         id=row.id,
-        username=row.username,
+        
         email=row.email,
         hashed_password="",  # never expose hash
         role=row.role,
