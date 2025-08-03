@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api from "../../api";
 
 const MODULE_OPTIONS = [
   { id: 9, name: "MQTT" },
   { id: 10, name: "S7" },
   { id: 11, name: "RDBMS" },
+ 
 ];
 
 const PERMISSION_OPTIONS = ["add", "edit", "delete", "view"];
 
-function DeleteUserModal({ user, onClose, onSuccess }) {
+function DeleteAdminModal({ admin, onClose, onSuccess }) {
   const [selectedModuleName, setSelectedModuleName] = useState(null);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -17,22 +18,22 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (user.modules?.length > 0) {
-      const mod = user.modules[0];
+    if (admin.modules?.length > 0) {
+      const mod = admin.modules[0];
       setSelectedModuleName(mod.module_name);
       setAvailablePermissions(mod.permissions || []);
     }
-  }, [user]);
+  }, [admin]);
 
   useEffect(() => {
     if (selectedModuleName) {
-      const module = user.modules?.find(mod => 
+      const module = admin.modules?.find(mod => 
         mod.module_name === selectedModuleName
       );
       setAvailablePermissions(module?.permissions || []);
       setSelectedPermissions([]);
     }
-  }, [selectedModuleName, user.modules]);
+  }, [selectedModuleName, admin.modules]);
 
   const togglePermission = (perm) => {
     setSelectedPermissions((prev) =>
@@ -61,7 +62,7 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
     
     try {
       const token = localStorage.getItem("access_token");
-      await api.delete(`/users/${user.id}/permissions`, {
+      await api.delete(`/admins/${admin.id}/permissions`, {
         headers: { Authorization: `Bearer ${token}` },
         data: {
           module_id: moduleId,
@@ -71,7 +72,7 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
       onSuccess();
       onClose();
     } catch (error) {
-      console.error("Failed to delete user permissions", error);
+      console.error("Failed to delete admin permissions", error);
       
       let errorMessage = "Could not delete permissions";
       if (error.response) {
@@ -96,7 +97,7 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
             Delete Permissions
           </h3>
           <p className="text-gray-600 mt-1">
-            For user: <span className="font-medium text-blue-600">{user.email}</span>
+            For admin: <span className="font-medium text-red-600">{admin.email}</span>
           </p>
         </div>
         
@@ -110,13 +111,13 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
           
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-gray-800 mb-2 capitalize">
-              {selectedModuleName || "No module selected"}
+              {selectedModuleName}
             </h4>
             <div className="flex flex-wrap gap-2">
               {availablePermissions.map((perm) => (
                 <span 
                   key={perm} 
-                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full capitalize"
+                  className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full capitalize"
                 >
                   {perm}
                 </span>
@@ -137,10 +138,10 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
               <select
                 value={selectedModuleName || ""}
                 onChange={(e) => setSelectedModuleName(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none"
               >
                 <option value="" disabled>Select a module</option>
-                {user.modules?.map((module) => (
+                {admin.modules?.map((module) => (
                   <option 
                     key={module.module_name} 
                     value={module.module_name} 
@@ -230,4 +231,4 @@ function DeleteUserModal({ user, onClose, onSuccess }) {
   );
 }
 
-export default DeleteUserModal;
+export default DeleteAdminModal;

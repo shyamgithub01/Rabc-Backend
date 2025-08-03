@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import api from "../api";
-import EditUserModal from "./EditUserModal";
-import DeleteUserModal from "./DeleteUserModal";
-import UserCreate from "./UserCreate";
+import api from "../../api";
+import EditAdminModal from "../Admin/EditAdminModal";
+import DeleteAdminModal from "../Admin/DeleteAdminModal";
+import AdminCreate from "../Admin/AdminCreate"; // 
 
-function AdminDashboard() {
+function SuperAdminDashboard() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -20,10 +19,10 @@ function AdminDashboard() {
       const res = await api.get("/users-with-permissions", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const onlyUsers = res.data.filter((u) => u.role === "user");
-      setUsers(onlyUsers);
-    } catch (err) {
-      console.error("Error fetching users:", err);
+      const onlyAdmins = res.data.filter((user) => user.role === "admin");
+      setUsers(onlyAdmins);
+    } catch (error) {
+      console.error("Error fetching users:", error);
       setError("Failed to load user data. Please try again.");
     } finally {
       setIsLoading(false);
@@ -36,16 +35,16 @@ function AdminDashboard() {
 
   const openEditModal = (user) => {
     setSelectedUser(user);
-    setModalType("editUser");
+    setModalType("editAdmin");
   };
 
   const openDeleteModal = (user) => {
     setSelectedUser(user);
-    setModalType("deleteUser");
+    setModalType("deleteAdmin");
   };
 
   const openCreateModal = () => {
-    setModalType("createUser");
+    setModalType("createAdmin");
   };
 
   const closeModal = () => {
@@ -53,63 +52,56 @@ function AdminDashboard() {
     setSelectedUser(null);
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-7">
-  <div>
-    <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
-    <p className="text-sm text-gray-500 mt-1">
-      Add, edit and manage user accounts
-    </p>
-  </div>
-  
-  <div className="flex items-center gap-2">
-    <button
-      onClick={fetchUsers}
-      title="Refresh list"
-      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.8}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-        />
-      </svg>
-    </button>
-    
-    <button
-      onClick={openCreateModal}
-      className="flex items-center gap-1.5 bg-gray-700 text-white text-sm font-medium pl-3 pr-4 py-2.5 rounded-lg shadow hover:shadow-md transition-all duration-200"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-      </svg>
-      Create User
-    </button>
-  </div>
-</div>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Manage Admins</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Create, edit, and manage admin accounts
+          </p>
+        </div>
 
-
-      <div className="flex mb-4">
-        <input
-          type="text"
-          placeholder="Search by email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-        />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchUsers}
+            title="Refresh"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-1 bg-gray-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Create Admin
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -121,16 +113,26 @@ function AdminDashboard() {
           <table className="min-w-full table-auto">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Permissions</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                  Permissions
+                </th>
+                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-800">
+                    {user.email}
+                  </td>
                   <td className="px-6 py-4 text-sm">
                     <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                       {user.role}
@@ -142,7 +144,10 @@ function AdminDashboard() {
                         {user.modules
                           .filter(
                             (mod) =>
-                              !(mod.permissions.length === 1 && mod.permissions[0] === "view")
+                              !(
+                                mod.permissions.length === 1 &&
+                                mod.permissions[0] === "view"
+                              )
                           )
                           .map((mod, idx) => (
                             <div
@@ -154,7 +159,9 @@ function AdminDashboard() {
                           ))}
                       </div>
                     ) : (
-                      <span className="text-gray-400 italic">No permissions</span>
+                      <span className="text-gray-400 italic">
+                        No permissions
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -178,23 +185,29 @@ function AdminDashboard() {
         </div>
       )}
 
-      {modalType === "editUser" && selectedUser && (
-        <EditUserModal
-          user={selectedUser}
+      {modalType === "editAdmin" && selectedUser && (
+        <EditAdminModal
+          admin={{
+            ...selectedUser,
+            modules: selectedUser.modules.filter(
+              (mod) =>
+                !(mod.permissions.length === 1 && mod.permissions[0] === "view")
+            ),
+          }}
           onClose={closeModal}
           onSuccess={fetchUsers}
         />
       )}
 
-      {modalType === "deleteUser" && selectedUser && (
-        <DeleteUserModal
-          user={selectedUser}
+      {modalType === "deleteAdmin" && selectedUser && (
+        <DeleteAdminModal
+          admin={selectedUser}
           onClose={closeModal}
           onSuccess={fetchUsers}
         />
       )}
 
-      {modalType === "createUser" && (
+      {modalType === "createAdmin" && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-center items-center p-4">
           <div className="bg-white w-full max-w-lg rounded-lg shadow-lg relative p-6">
             <button
@@ -203,7 +216,7 @@ function AdminDashboard() {
             >
               &times;
             </button>
-            <UserCreate
+            <AdminCreate
               onSuccess={() => {
                 closeModal();
                 fetchUsers();
@@ -216,4 +229,4 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+export default SuperAdminDashboard;

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import api from "../api";
+import api from "../../api";
 
 const MODULE_OPTIONS = [
   { id: 9, name: "MQTT" },
@@ -9,33 +9,30 @@ const MODULE_OPTIONS = [
 
 const PERMISSION_OPTIONS = ["add", "edit", "delete", "view"];
 
-function EditAdminModal({ admin, onClose, onSuccess }) {
+function EditUserModal({ user, onClose, onSuccess }) {
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // Get modules with missing permissions
   const modulesWithMissingPermissions = useMemo(() => {
     return MODULE_OPTIONS.filter(module => {
-      const adminModule = admin.modules?.find(m => m.module_id === module.id);
-      return !adminModule || PERMISSION_OPTIONS.some(perm => 
-        !adminModule.permissions.includes(perm)
+      const userModule = user.modules?.find(m => m.module_id === module.id);
+      return !userModule || PERMISSION_OPTIONS.some(perm =>
+        !userModule.permissions.includes(perm)
       );
     });
-  }, [admin.modules]);
+  }, [user.modules]);
 
-  // Get missing permissions for selected module
   const missingPermissions = useMemo(() => {
     if (!selectedModuleId) return [];
-    
-    const adminModule = admin.modules?.find(m => m.module_id === selectedModuleId);
-    const currentPermissions = adminModule?.permissions || [];
-    
-    return PERMISSION_OPTIONS.filter(p => !currentPermissions.includes(p));
-  }, [selectedModuleId, admin.modules]);
 
-  // Initialize selected module
+    const userModule = user.modules?.find((m) => m.module_id === selectedModuleId);
+    const currentPermissions = userModule?.permissions || [];
+
+    return PERMISSION_OPTIONS.filter(p => !currentPermissions.includes(p));
+  }, [selectedModuleId, user.modules]);
+
   useEffect(() => {
     if (modulesWithMissingPermissions.length > 0) {
       setSelectedModuleId(modulesWithMissingPermissions[0].id);
@@ -43,7 +40,7 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
       setSelectedModuleId(null);
     }
     setSelectedPermissions([]);
-  }, [admin.modules, modulesWithMissingPermissions]);
+  }, [user.modules, modulesWithMissingPermissions]);
 
   const togglePermission = (perm) => {
     setSelectedPermissions((prev) =>
@@ -59,16 +56,24 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
 
     setIsSaving(true);
     setError(null);
-    
+
+    // Get previously assigned permissions
+    const assignedModule = user.modules?.find((m) => m.module_id === selectedModuleId);
+    const existingPermissions = assignedModule?.permissions || [];
+
+    // Merge with newly selected permissions
+    const finalPermissions = Array.from(
+      new Set([...existingPermissions, ...selectedPermissions])
+    );
+
     const token = localStorage.getItem("access_token");
     const payload = {
       module_id: selectedModuleId,
-      permissions: selectedPermissions,
+      permissions: finalPermissions,
     };
 
     try {
-      // Changed from POST to PUT to match backend expectation
-      await api.put(`/admins/${admin.id}/permissions`, payload, {
+      await api.put(`/users/${user.id}/permissions`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -78,40 +83,26 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
       onClose();
     } catch (error) {
       console.error("Failed to save permissions", error);
-      
       let errorMessage = "Failed to save permissions";
-      if (error.response) {
-        if (error.response.data && error.response.data.detail) {
-          errorMessage = error.response.data.detail;
-        } else if (error.response.status === 422) {
-          errorMessage = "Invalid data format. Please try again.";
-        } else if (error.response.status === 405) {
-          errorMessage = "Invalid request method. Please contact support.";
-        }
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
       }
-      
       setError(errorMessage);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const selectedModuleName = MODULE_OPTIONS.find(
-    mod => mod.id === selectedModuleId
-  )?.name || '';
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-bold text-gray-800">
-            Add Permissions
-          </h3>
+          <h3 className="text-xl font-bold text-gray-800">Add Permissions</h3>
           <p className="text-gray-600 mt-1">
-            For admin: <span className="font-medium text-green-600">{admin.email}</span>
+            For user: <span className="font-medium text-green-600">{user.email}</span>
           </p>
         </div>
-        
+
         <div className="p-6">
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
@@ -119,20 +110,18 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
               <p>{error}</p>
             </div>
           )}
-          
+
           {modulesWithMissingPermissions.length === 0 && (
             <div className="mb-6 bg-blue-50 p-4 rounded-lg">
               <p className="text-blue-700">
-                This admin already has all permissions assigned for every module.
+                This user already has all permissions assigned for every module.
               </p>
             </div>
           )}
 
           {modulesWithMissingPermissions.length > 0 && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Module
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Module</label>
               <div className="relative">
                 <select
                   value={selectedModuleId || ""}
@@ -165,13 +154,10 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
                   <button
                     key={perm}
                     onClick={() => togglePermission(perm)}
-                    className={`
-                      flex flex-col items-center justify-center p-3 rounded-lg border transition-all
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all
                       ${selectedPermissions.includes(perm)
                         ? "bg-green-50 border-green-500 text-green-700 shadow-inner"
-                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}
-                      hover:shadow-sm
-                    `}
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"} hover:shadow-sm`}
                   >
                     <span className="text-sm font-medium capitalize">{perm}</span>
                     {selectedPermissions.includes(perm) && (
@@ -195,7 +181,7 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
             </div>
           )}
         </div>
-        
+
         <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
           <button
             onClick={onClose}
@@ -229,4 +215,4 @@ function EditAdminModal({ admin, onClose, onSuccess }) {
   );
 }
 
-export default EditAdminModal;
+export default EditUserModal;

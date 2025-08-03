@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import SuperAdminWelcome from "../components/SuperAdminWelcome";
-import AdminWelcome from "../components/AdminWelcome";
-import UserWelcome from "../components/UserWelcome";
+import SuperAdminWelcome from "../components/SuperAdmin/SuperAdminWelcome";
+import AdminWelcome from "../components/Admin/AdminWelcome";
+import UserWelcome from "../components/Users/UserWelcome";
 import { decodeToken } from "../utils/decodeToken";
 
 function Dashboard({ logout }) {

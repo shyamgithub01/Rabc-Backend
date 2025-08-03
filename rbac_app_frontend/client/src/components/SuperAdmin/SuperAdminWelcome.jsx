@@ -1,7 +1,7 @@
 // Modified SuperAdminWelcome.jsx with AdminCreate modal
 import React, { useState } from "react";
 import SuperAdminDashboard from "./SuperAdminDashboard";
-import AdminCreate from "./AdminCreate";
+import AdminCreate from "../Admin/AdminCreate";
 import { FaUserPlus, FaTachometerAlt, FaCog } from "react-icons/fa";
 
 function SuperAdminWelcome() {
