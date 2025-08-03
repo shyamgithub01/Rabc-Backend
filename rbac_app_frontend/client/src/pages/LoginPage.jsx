@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
-import { decodeToken } from "../utils/decodeToken";
+import  decodeToken  from "../utils/decodeToken";
 
 function LoginPage({ setUserEmail }) {
   const [email, setEmail] = useState("");

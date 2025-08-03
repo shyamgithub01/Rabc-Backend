@@ -4,7 +4,7 @@ import LoginPage from "./pages/LoginPage";
 
 
 import Dashboard from "./pages/Dashboard";
-import { decodeToken } from "./utils/decodeToken";
+import  decodeToken  from "./utils/decodeToken";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);

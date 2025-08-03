@@ -3,6 +3,7 @@ import api from "../../api";
 import EditUserModal from "../Users/EditUserModal";
 import DeleteUserModal from "../Users/DeleteUserModal";
 import UserCreate from "../Users/UserCreate";
+import decodeToken from "../../utils/decodeToken";
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -11,17 +12,35 @@ function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [adminId, setAdminId] = useState(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem("access_token");
+      const decoded = decodeToken(token);
+      const adminEmail = decoded?.sub;
+
       const res = await api.get("/users-with-permissions", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const onlyUsers = res.data.filter((u) => u.role === "user");
-      setUsers(onlyUsers);
+
+      const allUsers = res.data;
+      const currentAdmin = allUsers.find((u) => u.email === adminEmail);
+
+      if (!currentAdmin) {
+        setError("Logged-in admin not found in user list.");
+        setUsers([]);
+        return;
+      }
+
+      setAdminId(currentAdmin.id);
+      setUsers(allUsers);
     } catch (err) {
       console.error("Error fetching users:", err);
       setError("Failed to load user data. Please try again.");
@@ -29,10 +48,6 @@ function AdminDashboard() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const openEditModal = (user) => {
     setSelectedUser(user);
@@ -53,54 +68,53 @@ function AdminDashboard() {
     setSelectedUser(null);
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users
+    .filter((u) => u.role === "user" && u.created_by === adminId)
+    .filter((u) => u.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-7">
-  <div>
-    <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
-    <p className="text-sm text-gray-500 mt-1">
-      Add, edit and manage user accounts
-    </p>
-  </div>
-  
-  <div className="flex items-center gap-2">
-    <button
-      onClick={fetchUsers}
-      title="Refresh list"
-      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.8}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-        />
-      </svg>
-    </button>
-    
-    <button
-      onClick={openCreateModal}
-      className="flex items-center gap-1.5 bg-gray-700 text-white text-sm font-medium pl-3 pr-4 py-2.5 rounded-lg shadow hover:shadow-md transition-all duration-200"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-      </svg>
-      Create User
-    </button>
-  </div>
-</div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Add, edit and manage user accounts
+          </p>
+        </div>
 
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchUsers}
+            title="Refresh list"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </button>
+
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-1.5 bg-gray-700 text-white text-sm font-medium pl-3 pr-4 py-2.5 rounded-lg shadow hover:shadow-md transition-all duration-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            Create User
+          </button>
+        </div>
+      </div>
 
       <div className="flex mb-4">
         <input

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SuperAdminWelcome from "../components/SuperAdmin/SuperAdminWelcome";
 import AdminWelcome from "../components/Admin/AdminWelcome";
 import UserWelcome from "../components/Users/UserWelcome";
-import { decodeToken } from "../utils/decodeToken";
+import  decodeToken  from "../utils/decodeToken";
 
 function Dashboard({ logout }) {
   const [role, setRole] = useState(null);
