@@ -11,11 +11,11 @@ from app.db.init_db import init_db
 from app.api.auth import login, signup
 from app.api.users.create_admins import router as create_admin
 from app.api.users.admin_permission_update import router as admin_manage_permission
-from app.api.users.admin_permission_delete import router as delete_permission
+from app.api.users.admin_delete import router as delete_permission
 from app.api.users.create_user import router as create_user
 from app.api.users.user_with_permissions import router as users_with_permission
 
-from app.api.users.user_permission_delete import router as users_permission_delete
+from app.api.users.user_delete import router as users_permission_delete
 from app.api.users.user_permission_update import router as users_permission_update
 
 

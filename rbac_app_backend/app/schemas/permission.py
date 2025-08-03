@@ -4,11 +4,19 @@ from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
+
 class PermissionEnum(str, Enum):
     ADD = "add"
     EDIT = "edit"
     DELETE = "delete"
     VIEW = "view"
+
+
+class RoleEnum(str, Enum):
+    superadmin = "superadmin"
+    admin = "admin"
+    user = "user"
+
 
 
 class AssignPermissionRequest(BaseModel):

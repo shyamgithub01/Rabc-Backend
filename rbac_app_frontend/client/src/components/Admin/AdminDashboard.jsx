@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api";
-import EditUserModal from "../Users/EditUserModal";
-import DeleteUserModal from "../Users/DeleteUserModal";
+import ManageUsers from "../Users/ManageUsers";
 import UserCreate from "../Users/UserCreate";
 import decodeToken from "../../utils/decodeToken";
 
@@ -13,10 +12,6 @@ function AdminDashboard() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [adminId, setAdminId] = useState(null);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -49,14 +44,13 @@ function AdminDashboard() {
     }
   };
 
-  const openEditModal = (user) => {
-    setSelectedUser(user);
-    setModalType("editUser");
-  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const openDeleteModal = (user) => {
+  const openManageUser = (user) => {
     setSelectedUser(user);
-    setModalType("deleteUser");
+    setModalType("manageUser");
   };
 
   const openCreateModal = () => {
@@ -74,19 +68,19 @@ function AdminDashboard() {
 
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-7">
+      <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Add, edit and manage user accounts
+            Create and manage user accounts
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={fetchUsers}
-            title="Refresh list"
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
+            title="Refresh"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -94,7 +88,7 @@ function AdminDashboard() {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={1.8}
+              strokeWidth={1.5}
             >
               <path
                 strokeLinecap="round"
@@ -103,13 +97,21 @@ function AdminDashboard() {
               />
             </svg>
           </button>
-
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-1.5 bg-gray-700 text-white text-sm font-medium pl-3 pr-4 py-2.5 rounded-lg shadow hover:shadow-md transition-all duration-200"
+            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
             </svg>
             Create User
           </button>
@@ -138,7 +140,7 @@ function AdminDashboard() {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Role</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Permissions</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">Actions</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">Manage</th>
               </tr>
             </thead>
             <tbody>
@@ -155,8 +157,7 @@ function AdminDashboard() {
                       <div className="space-y-1">
                         {user.modules
                           .filter(
-                            (mod) =>
-                              !(mod.permissions.length === 1 && mod.permissions[0] === "view")
+                            (mod) => !(mod.permissions.length === 1 && mod.permissions[0] === "view")
                           )
                           .map((mod, idx) => (
                             <div
@@ -173,16 +174,10 @@ function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => openEditModal(user)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium mr-4"
+                      onClick={() => openManageUser(user)}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(user)}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium"
-                    >
-                      Delete
+                      Manage
                     </button>
                   </td>
                 </tr>
@@ -192,16 +187,8 @@ function AdminDashboard() {
         </div>
       )}
 
-      {modalType === "editUser" && selectedUser && (
-        <EditUserModal
-          user={selectedUser}
-          onClose={closeModal}
-          onSuccess={fetchUsers}
-        />
-      )}
-
-      {modalType === "deleteUser" && selectedUser && (
-        <DeleteUserModal
+      {modalType === "manageUser" && selectedUser && (
+        <ManageUsers
           user={selectedUser}
           onClose={closeModal}
           onSuccess={fetchUsers}
@@ -217,12 +204,7 @@ function AdminDashboard() {
             >
               &times;
             </button>
-            <UserCreate
-              onSuccess={() => {
-                closeModal();
-                fetchUsers();
-              }}
-            />
+            <UserCreate onClose={closeModal} onSuccess={fetchUsers} />
           </div>
         </div>
       )}
