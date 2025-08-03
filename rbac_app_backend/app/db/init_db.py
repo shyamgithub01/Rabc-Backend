@@ -10,7 +10,7 @@ import logging
 valid_actions = ["add", "edit", "delete", "view"]
 
 # Define the module names you want in the system
-module_names = ["MQTT", "S7", "RDBMS" , "Reports" , "Devices" , "Users" ]
+module_names = ["MQTT", "S7", "RDBMS" , "Reports" , "Devices" , "Users" ,"Dashboard"]
 
 async def init_db():
     async with AsyncSessionLocal() as session:

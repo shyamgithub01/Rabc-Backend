@@ -19,11 +19,12 @@ function AdminWelcome() {
   const [modules, setModules] = useState([]);
 
   const MODULE_MAP = {
+    Dashboard: 23,
     MQTT: 24,
     S7: 25,
     RDBMS: 26,
     Reports: 27,
-    Devices: 28, // Not required anymore for display
+    Devices: 28,
     Users: 29,
   };
 
@@ -43,15 +44,16 @@ function AdminWelcome() {
         setModules(userModules);
 
         const moduleNames = userModules.map((mod) => mod.module_name);
+        const hasDashboard = moduleNames.includes("Dashboard");
         const hasReports = moduleNames.includes("Reports");
+        const hasDevices = moduleNames.includes("Devices"); // ✅ updated
         const hasUsers = moduleNames.includes("Users");
-        const hasDevices = ["MQTT", "S7", "RDBMS"].some((m) => moduleNames.includes(m));
 
-        // Set default tab
-        if (hasReports) setActiveTab("reports");
+        if (hasDashboard) setActiveTab("dashboard");
+        else if (hasReports) setActiveTab("reports");
         else if (hasDevices) setActiveTab("devices");
         else if (hasUsers) setActiveTab("users");
-        else setActiveTab("dashboard"); // fallback
+        else setActiveTab(null);
       } catch (err) {
         console.error("Failed to fetch permissions", err);
       }
@@ -77,16 +79,20 @@ function AdminWelcome() {
       case "users":
         return <AdminUsers />;
       default:
-        return <AdminDashboard />;
+        return (
+          <div className="text-gray-600 p-6 text-center">
+            You don’t have access to any modules.
+          </div>
+        );
     }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white text-black flex-shrink-0">
-        <div className="p-5 border-b border-gray-700">
-          <h1 className="text-xl font-bold">Admin Portal</h1>
+      <div className="w-64 bg-white text-black flex-shrink-0 shadow-md border-r border-gray-200">
+        <div className="p-5 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
         </div>
 
         <div className="p-4">
@@ -95,19 +101,21 @@ function AdminWelcome() {
           </h2>
           <nav>
             <ul className="space-y-1">
-              <li>
-                <button
-                  onClick={() => setActiveTab("dashboard")}
-                  className={`w-full text-left py-2.5 px-4 flex items-center rounded-md ${
-                    activeTab === "dashboard"
-                      ? "bg-gray-700 text-white"
-                      : "text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <FaTachometerAlt className="mr-3" />
-                  Dashboard
-                </button>
-              </li>
+              {hasPermissionFor("Dashboard") && (
+                <li>
+                  <button
+                    onClick={() => setActiveTab("dashboard")}
+                    className={`w-full text-left py-2.5 px-4 flex items-center rounded-md ${
+                      activeTab === "dashboard"
+                        ? "bg-gray-700 text-white"
+                        : "text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <FaTachometerAlt className="mr-3" />
+                    Dashboard
+                  </button>
+                </li>
+              )}
 
               {hasPermissionFor("Reports") && (
                 <li>
@@ -125,7 +133,7 @@ function AdminWelcome() {
                 </li>
               )}
 
-              {["MQTT", "S7", "RDBMS"].some((m) => hasPermissionFor(m)) && (
+              {hasPermissionFor("Devices") && (
                 <li>
                   <button
                     onClick={() => setActiveTab("devices")}
@@ -164,7 +172,7 @@ function AdminWelcome() {
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="max-w-full mx-auto px-4 sm:px-6 md:px-8">
-          <div className="pb-8 pt-6">{renderContent()}</div>
+          <div className="py-6">{renderContent()}</div>
         </div>
       </div>
     </div>

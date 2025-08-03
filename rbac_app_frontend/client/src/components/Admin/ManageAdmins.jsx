@@ -6,8 +6,11 @@ const MODULE_OPTIONS = [
   { id: 25, name: "S7" },
   { id: 26, name: "RDBMS" },
   { id: 27, name: "Reports" },
+  { id: 28, name: "Devices" },
   
   { id: 29, name: "Users" },
+  { id: 30, name: "Dashboard" },
+
   
 
 ];

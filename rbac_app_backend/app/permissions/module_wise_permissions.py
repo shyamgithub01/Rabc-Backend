@@ -8,6 +8,8 @@ module_permissions = {
     "Reports": ["add", "edit", "delete", "view"],
     "Devices": ["add", "edit", "delete", "view"],
     "Users": ["add", "edit", "delete", "view"],
+    "Dashboard": ["add", "edit", "delete", "view"],
+
 
 
     
