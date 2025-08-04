@@ -12,4 +12,5 @@ class UserPermission(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     module_id = Column(Integer, ForeignKey("modules.id", ondelete="CASCADE"))
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"))
-    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+

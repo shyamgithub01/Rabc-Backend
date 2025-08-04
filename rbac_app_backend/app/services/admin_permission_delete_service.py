@@ -94,25 +94,29 @@ async def remove_permissions_from_admin(
             detail="Error checking assigned permissions.",
         )
 
-    if not assigned_user_permission_ids:
-        return {"detail": "No assigned permissions found to delete."}
-
-    # 6. Delete assigned permissions
+    deleted_count = 0
     try:
-        delete_stmt = delete(UserPermission).where(
-            UserPermission.id.in_(assigned_user_permission_ids)
-        )
-        await db.execute(delete_stmt)
+        # 6. Delete assigned permissions if any
+        if assigned_user_permission_ids:
+            delete_stmt = delete(UserPermission).where(
+                UserPermission.id.in_(assigned_user_permission_ids)
+            )
+            await db.execute(delete_stmt)
+            deleted_count = len(assigned_user_permission_ids)
 
-        # Optional: Nullify assigned_by if current user was the assigner
+        # 7. Nullify assigned_by to avoid FK issues
         await db.execute(
             update(UserPermission)
             .where(UserPermission.assigned_by == user_id)
             .values(assigned_by=None)
         )
 
+        # 8. Delete the user account
+        await db.execute(
+            delete(User).where(User.id == user_id)
+        )
+
         await db.commit()
-        deleted_count = len(assigned_user_permission_ids)
 
     except SQLAlchemyError as e:
         await db.rollback()
@@ -123,8 +127,10 @@ async def remove_permissions_from_admin(
         )
 
     logger.info(
-        "Superadmin %s removed %d permission(s) for admin %s in module %s",
+        "Superadmin %s removed %d permission(s) and deleted admin user %s in module %s",
         current_user.id, deleted_count, user_id, module_id
     )
 
-    return {"detail": f"Removed {deleted_count} assigned permission(s) successfully."}
+    return {
+        "detail": f"Removed {deleted_count} assigned permission(s) and deleted admin user successfully."
+    }
