@@ -7,18 +7,12 @@ function SuperAdminWelcome() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <SuperAdminDashboard />;
-      // Add more cases as needed
-      default:
-        return <div className="p-6">Select a tab</div>;
-    }
+    return <SuperAdminDashboard />;
   };
 
   return (
     <div className="w-screen h-[90vh] flex bg-gradient-to-br from-[#e7f0ff] to-[#f3f9fd] overflow-hidden m-0 p-0">
-      {/* Sidebar */}
+      {/* Sidebar with smoother animation */}
       <div
         className={`transition-all duration-[800ms] ease-in-out bg-white text-black border-r border-gray-200 ${
           sidebarOpen ? "w-60" : "w-16"
@@ -45,11 +39,7 @@ function SuperAdminWelcome() {
             className="absolute mt-150 ml-4 -right-4 top-1/2 transform -translate-y-1/2 bg-white p-3 rounded-full shadow border text-gray-600 hover:text-gray-800 hover:scale-110 transition-all z-10"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            {sidebarOpen ? (
-              <FaChevronLeft size={22} />
-            ) : (
-              <FaChevronRight size={22} />
-            )}
+            {sidebarOpen ? <FaChevronLeft size={22} /> : <FaChevronRight size={22} />}
           </button>
         </div>
 
@@ -59,13 +49,15 @@ function SuperAdminWelcome() {
               <li>
                 <button
                   onClick={() => setActiveTab("dashboard")}
-                  className={`w-full mt-6 flex items-center rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
+                  className={`w-full mt-6 flex rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
                     activeTab === "dashboard"
-                      ? "bg-gray-100 text-black font-semibold"
+                      ? "bg-white text-black font-semibold"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <FaBriefcase className="text-xl" />
+                  <span className="min-w-[1.75rem] text-xl flex justify-center items-center">
+                    <FaBriefcase />
+                  </span>
                   {sidebarOpen && (
                     <span className="ml-3 flex space-x-[1px] overflow-hidden">
                       {"Manage Admins".split("").map((char, index) => (
