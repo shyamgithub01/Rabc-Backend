@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import api from "../../api";
 
-export default function UserCreate() {
+export default function UserCreate({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [createdUser, setCreatedUser] = useState(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const handleChange = (e) => {
@@ -39,18 +38,23 @@ export default function UserCreate() {
 
     try {
       const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No authentication token found.");
+      }
       const res = await api.post(
         "/users/",
         { ...formData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess("User created successfully!");
-      setCreatedUser(res.data);
+      setSuccess("User created successfully! The user list will update automatically.");
       setFormData({ email: "", password: "" });
       setShowPassword(false);
       setPasswordStrength(0);
+      if (onSuccess) {
+        onSuccess(); // Trigger fetchUsers in AdminUsers
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create user. Please try again.");
+      setError(err.response?.data?.detail || err.message || "Failed to create user. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,9 +70,7 @@ export default function UserCreate() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 relative">
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create New User</h2>
-        <div className="flex items-center space-x-2">
-          
-        </div>
+       
       </div>
 
       {/* Error */}
@@ -207,19 +209,6 @@ export default function UserCreate() {
           </button>
         </div>
       </form>
-
-      {/* Created User Details */}
-      {createdUser && (
-        <div className="mt-6 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
-          <h3 className="font-semibold text-gray-800 mb-2 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Created User Details
-          </h3>
-          <p>Email: {createdUser.email}</p>
-        </div>
-      )}
     </div>
   );
 }

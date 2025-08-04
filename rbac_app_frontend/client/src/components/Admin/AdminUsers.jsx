@@ -4,7 +4,7 @@ import ManageUsers from "../Users/ManageUsers";
 import UserCreate from "../Users/UserCreate";
 import decodeToken from "../../utils/decodeToken";
 
-function AdminDashboard() {
+function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalType, setModalType] = useState(null);
@@ -45,32 +45,32 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-  fetchUsers(); // initial fetch
+    fetchUsers(); // Initial fetch
 
-  const interval = setInterval(async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const decoded = decodeToken(token);
-      const adminEmail = decoded?.sub;
+    const interval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const decoded = decodeToken(token);
+        const adminEmail = decoded?.sub;
 
-      const res = await api.get("/users-with-permissions", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        const res = await api.get("/users-with-permissions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const allUsers = res.data;
-      const currentAdmin = allUsers.find((u) => u.email === adminEmail);
+        const allUsers = res.data;
+        const currentAdmin = allUsers.find((u) => u.email === adminEmail);
 
-      if (currentAdmin) {
-        setAdminId(currentAdmin.id);
-        setUsers(allUsers);
+        if (currentAdmin) {
+          setAdminId(currentAdmin.id);
+          setUsers(allUsers);
+        }
+      } catch (err) {
+        console.error("Auto-refresh failed:", err);
       }
-    } catch (err) {
-      console.error("Auto-refresh failed:", err);
-    }
-  }, 1000); 
+    }, 1000);
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
   const openManageUser = (user) => {
     setSelectedUser(user);
@@ -91,7 +91,7 @@ function AdminDashboard() {
     .filter((u) => u.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="p-6 sm:p-8 max-w-6xl mx-auto">
+    <div className="pt-5 ml-3 px-4 sm:px-6 max-w-lvw mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
@@ -99,12 +99,11 @@ function AdminDashboard() {
             Create and manage user accounts
           </p>
         </div>
-
         <div className="flex items-center gap-3">
           <button
             onClick={fetchUsers}
             title="Refresh"
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -117,17 +116,17 @@ function AdminDashboard() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                d="M16.023 9.348h4.992M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
               />
             </svg>
           </button>
           <button
             onClick={openCreateModal}
-            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center transition-colors"
+            className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
+              className="h-4 w-4"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -153,59 +152,96 @@ function AdminDashboard() {
       </div>
 
       {isLoading ? (
-        <p className="text-gray-600">Loading...</p>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-700"></div>
+        </div>
       ) : error ? (
-        <p className="text-red-500 font-medium">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h3 className="text-xl font-medium text-red-700">
+            Error Loading Data
+          </h3>
+          <p className="text-red-600 mt-2">{error}</p>
+          <button
+            onClick={fetchUsers}
+            className="mt-4 bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md"
+          >
+            Try Again
+          </button>
+        </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow border">
-          <table className="min-w-full table-auto">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto border">
+          <table className="min-w-full divide-y divide-gray-200 text-sm table-fixed border">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Permissions</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">Manage</th>
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
+                  Permissions
+                </th>
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {user.modules && user.modules.length > 0 ? (
-                      <div className="space-y-1">
-                        {user.modules
-                          .filter(
-                            (mod) => !(mod.permissions.length === 1 && mod.permissions[0] === "view")
-                          )
-                          .map((mod, idx) => (
-                            <div
+            <tbody className="bg-white divide-y divide-gray-100">
+              {filteredUsers.map((user) => {
+                const filteredModules = (user.modules || []).filter(
+                  (mod) =>
+                    !(
+                      mod.permissions.length === 1 &&
+                      mod.permissions[0] === "view"
+                    )
+                );
+
+                return (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-1 py-4 text-center whitespace-nowrap text-gray-800 border">
+                      {user.email}
+                    </td>
+                    <td className="px-1 py-4 text-center border">
+                      <span className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium capitalize">
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-1 py-4 text-center text-gray-700 max-w-xl border">
+                      <div className="flex flex-wrap gap-2">
+                        {filteredModules.length > 0 ? (
+                          filteredModules.map((mod, idx) => (
+                            <span
                               key={idx}
-                              className="text-xs bg-gray-100 px-2 py-1 rounded inline-block mr-1 mb-1"
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 border rounded text-xs text-gray-700"
+                              title={`${
+                                mod.module_name
+                              }: ${mod.permissions.join(", ")}`}
                             >
-                              {mod.module_name}: {mod.permissions.join(", ")}
-                            </div>
-                          ))}
+                              <span className="font-semibold text-gray-600 mr-1">
+                                {mod.module_name}:
+                              </span>
+                              {mod.permissions.join(", ")}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="italic text-gray-400">
+                            No meaningful permissions
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-gray-400 italic">No permissions</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => openManageUser(user)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 text-center border">
+                      <button
+                        onClick={() => openManageUser(user)}
+                        className="text-blue-600 hover:text-blue-800 font-medium transition duration-150 ease-in-out"
+                      >
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -236,4 +272,4 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+export default AdminUsers;

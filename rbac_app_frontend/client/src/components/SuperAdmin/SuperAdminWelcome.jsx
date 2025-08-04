@@ -21,7 +21,7 @@ function SuperAdminWelcome() {
         <div className="flex justify-between items-center p-4 border-b border-gray-900 relative">
           {sidebarOpen && (
             <span className="ml-3 font-bold mt-2 flex space-x-[1px] overflow-hidden">
-              {"Empower Control".split("").map((char, index) => (
+              {"Access Rights".split("").map((char, index) => (
                 <span
                   key={index}
                   className="text-base opacity-0 animate-fade-in"
@@ -51,8 +51,8 @@ function SuperAdminWelcome() {
                   onClick={() => setActiveTab("dashboard")}
                   className={`w-full mt-6 flex rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
                     activeTab === "dashboard"
-                      ? "bg-white text-black font-semibold"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "min-w-xl bg-gray-900 text-white font-semibold"
+                      : "text-gray-700 min-w-xl hover:bg-gray-100"
                   }`}
                 >
                   <span className="min-w-[1.75rem] text-xl flex justify-center items-center">
