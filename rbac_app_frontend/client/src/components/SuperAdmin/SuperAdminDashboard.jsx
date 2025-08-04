@@ -47,7 +47,7 @@ function SuperAdminDashboard() {
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-6xl mx-auto">
+    <div className="pt-5 ml-3 px-4 sm:px-6 max-w-lvw mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Manage Admins</h2>
@@ -55,12 +55,11 @@ function SuperAdminDashboard() {
             Create and manage admin accounts
           </p>
         </div>
-
         <div className="flex items-center gap-3">
           <button
             onClick={fetchUsers}
             title="Refresh"
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -73,24 +72,24 @@ function SuperAdminDashboard() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                d="M16.023 9.348h4.992M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
               />
             </svg>
           </button>
           <button
             onClick={openCreateModal}
-            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center transition-colors"
+            className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-4 w-4 mr-1" 
-              viewBox="0 0 20 20" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
               fill="currentColor"
             >
-              <path 
-                fillRule="evenodd" 
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" 
-                clipRule="evenodd" 
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
               />
             </svg>
             Create Admin
@@ -104,10 +103,9 @@ function SuperAdminDashboard() {
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h3 className="text-xl font-medium text-red-700 mt-4">Error Loading Data</h3>
+          <h3 className="text-xl font-medium text-red-700">
+            Error Loading Data
+          </h3>
           <p className="text-red-600 mt-2">{error}</p>
           <button
             onClick={fetchUsers}
@@ -116,91 +114,80 @@ function SuperAdminDashboard() {
             Try Again
           </button>
         </div>
-      ) : users.length === 0 ? (
-        <div className="bg-white rounded-lg shadow border p-8 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-          <h3 className="text-xl font-medium text-gray-700 mt-4">No admins found</h3>
-          <p className="text-gray-500 mt-2">
-            You haven't created any admins yet. Click "Create Admin" to add your first admin account.
-          </p>
-          <button
-            onClick={openCreateModal}
-            className="mt-4 bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md inline-flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-            Create First Admin
-          </button>
-        </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow border">
-          <table className="min-w-full table-auto">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto  border ">
+          <table className="min-w-full divide-y divide-gray-200 text-sm table-fixed border ">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border ">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                <th className="px-6 py-3  text-center font-semibold text-gray-700 uppercase tracking-wider border ">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border ">
                   Permissions
                 </th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">
-                  Manage
+                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border ">
+                  Actions
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-800">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {user.modules && user.modules.length > 0 ? (
-                      <div className="space-y-1">
-                        {user.modules
-                          .filter(
-                            (mod) =>
-                              !(
-                                mod.permissions.length === 1 &&
-                                mod.permissions[0] === "view"
-                              )
-                          )
-                          .map((mod, idx) => (
-                            <div
-                              key={idx}
-                              className="text-xs bg-gray-100 px-2 py-1 rounded inline-block mr-1 mb-1"
-                            >
-                              {mod.module_name}: {mod.permissions.join(", ")}
-                            </div>
-                          ))}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 italic">
-                        No permissions
+            <tbody className="bg-white divide-y divide-gray-100">
+              {users.map((user) => {
+                const filteredModules = (user.modules || []).filter(
+                  (mod) =>
+                    !(
+                      mod.permissions.length === 1 &&
+                      mod.permissions[0] === "view"
+                    )
+                );
+
+                return (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-1 py-4 text-center whitespace-nowrap text-gray-800 border ">
+                      {user.email}
+                    </td>
+                    <td className="px-1 py-4 text-center border ">
+                      <span className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium capitalize">
+                        {user.role}
                       </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => openManageAdmin(user)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-1 py-4 text-center text-gray-700 max-w-xl border">
+                      <div className="flex flex-wrap gap-2">
+                        {filteredModules.length > 0 ? (
+                          filteredModules.map((mod, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 border  rounded text-xs text-gray-700"
+                              title={`${
+                                mod.module_name
+                              }: ${mod.permissions.join(", ")}`}
+                            >
+                              <span className="font-semibold  text-gray-600 mr-1">
+                                {mod.module_name}:
+                              </span>
+                              {mod.permissions.join(", ")}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="italic text-gray-400">
+                            No meaningful permissions
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center border">
+                      <button
+                        onClick={() => openManageAdmin(user)}
+                        className="text-blue-600 hover:text-blue-800 font-medium transition duration-150 ease-in-out"
+                      >
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

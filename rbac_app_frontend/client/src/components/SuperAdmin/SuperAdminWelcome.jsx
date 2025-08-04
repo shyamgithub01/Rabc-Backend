@@ -1,55 +1,88 @@
-// Modified SuperAdminWelcome.jsx with AdminCreate modal
 import React, { useState } from "react";
 import SuperAdminDashboard from "./SuperAdminDashboard";
-import AdminCreate from "../Admin/AdminCreate";
-import { FaUserPlus, FaTachometerAlt, FaCog } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaBriefcase } from "react-icons/fa";
 
 function SuperAdminWelcome() {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const renderContent = () => {
     switch (activeTab) {
-      case "settings":
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">System Settings</h3>
-            <p className="text-gray-600">System configuration options will appear here.</p>
-          </div>
-        );
-      default:
+      case "dashboard":
         return <SuperAdminDashboard />;
+      // Add more cases as needed
+      default:
+        return <div className="p-6">Select a tab</div>;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="w-screen h-[90vh] flex bg-gradient-to-br from-[#e7f0ff] to-[#f3f9fd] overflow-hidden m-0 p-0">
       {/* Sidebar */}
-      <div className="w-64 bg-white text-black flex-shrink-0">
-        <div className="p-5 border-b border-gray-700">
-          <h1 className="text-xl font-bold">Admin Portal</h1>
+      <div
+        className={`transition-all duration-[800ms] ease-in-out bg-white text-black border-r border-gray-200 ${
+          sidebarOpen ? "w-60" : "w-16"
+        }`}
+      >
+        <div className="flex justify-between items-center p-4 border-b border-gray-900 relative">
+          {sidebarOpen && (
+            <span className="ml-3 font-bold mt-2 flex space-x-[1px] overflow-hidden">
+              {"Empower Control".split("").map((char, index) => (
+                <span
+                  key={index}
+                  className="text-base opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 50 + 300}ms`,
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
+            </span>
+          )}
+          <button
+            className="absolute mt-150 ml-4 -right-4 top-1/2 transform -translate-y-1/2 bg-white p-3 rounded-full shadow border text-gray-600 hover:text-gray-800 hover:scale-110 transition-all z-10"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? (
+              <FaChevronLeft size={22} />
+            ) : (
+              <FaChevronRight size={22} />
+            )}
+          </button>
         </div>
 
         <div className="p-4">
-          <h2 className="text-sm uppercase tracking-wider text-black mb-3">Navigation</h2>
           <nav>
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               <li>
                 <button
                   onClick={() => setActiveTab("dashboard")}
-                  className={`w-full text-left py-2.5 px-4 flex items-center rounded-md ${
+                  className={`w-full mt-6 flex items-center rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
                     activeTab === "dashboard"
-                      ? "bg-gray-700 text-white"
-                      : "text-gray-300 hover:bg-gray-700"
+                      ? "bg-gray-100 text-black font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <FaTachometerAlt className="mr-3" />
-                  Manage Admins
+                  <FaBriefcase className="text-xl" />
+                  {sidebarOpen && (
+                    <span className="ml-3 flex space-x-[1px] overflow-hidden">
+                      {"Manage Admins".split("").map((char, index) => (
+                        <span
+                          key={index}
+                          className="text-base opacity-0 animate-fade-in"
+                          style={{
+                            animationDelay: `${index * 50 + 300}ms`,
+                            animationFillMode: "forwards",
+                          }}
+                        >
+                          {char === " " ? "\u00A0" : char}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </button>
-              </li>
-              
-              <li>
-                
               </li>
             </ul>
           </nav>
@@ -57,27 +90,9 @@ function SuperAdminWelcome() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0">
-        <div className="max-w-full mx-auto px-4 sm:px-6 md:px-8">
-          
-          <div className="pb-8">{renderContent()}</div>
-        </div>
+      <div className="flex-1 w-full bg-white overflow-y-auto text-black">
+        {renderContent()}
       </div>
-
-      {/* AdminCreate Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-xl relative">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-            >
-              &times;
-            </button>
-            <AdminCreate />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

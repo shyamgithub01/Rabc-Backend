@@ -2,7 +2,7 @@ from typing import Set
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, delete, and_
+from sqlalchemy import select, delete, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -107,7 +107,23 @@ async def remove_permissions_from_user(
                 )
             )
         )
+
+        # 🆕 Nullify `assigned_by` if current user was the assigner
+        await db.execute(
+            update(UserPermission)
+            .where(
+                and_(
+                    UserPermission.user_id == target_user_id,
+                    UserPermission.module_id == payload.module_id,
+                    UserPermission.permission_id.in_(perm_ids),
+                    UserPermission.assigned_by == current_user.id
+                )
+            )
+            .values(assigned_by=None)
+        )
+
         await db.commit()
+
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error("Error removing permissions", exc_info=e)
@@ -116,4 +132,7 @@ async def remove_permissions_from_user(
             detail="Database error during permission removal."
         )
 
-    return {"detail": f"Removed {len(perm_ids)} permission(s) successfully."}
+    return {
+        "detail": f"Removed {len(perm_ids)} permission(s) successfully.",
+        "removed": sorted(action_to_id.keys())
+    }

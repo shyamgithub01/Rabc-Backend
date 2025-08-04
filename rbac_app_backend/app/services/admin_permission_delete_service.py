@@ -1,7 +1,7 @@
 from typing import List
 import logging
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
@@ -22,14 +22,14 @@ async def remove_permissions_from_admin(
     current_user: User,
     db: AsyncSession,
 ):
-    # 1) Authorization
+    # 1. Authorization
     if current_user.role != RoleEnum.superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only superadmins can remove permissions.",
         )
 
-    # 2) Target user must exist and be admin
+    # 2. Target user must exist and be admin
     target_user = await db.get(User, user_id)
     if not target_user:
         raise HTTPException(
@@ -42,7 +42,7 @@ async def remove_permissions_from_admin(
             detail="Target user is not an admin.",
         )
 
-    # 3) Module must exist
+    # 3. Module must exist
     module = await db.get(Module, module_id)
     if not module:
         raise HTTPException(
@@ -50,7 +50,7 @@ async def remove_permissions_from_admin(
             detail="Module not found.",
         )
 
-    # 4) Resolve permission IDs from requested actions
+    # 4. Resolve permission IDs from requested actions
     actions = [p.value for p in permissions]
     if not actions:
         raise HTTPException(
@@ -77,7 +77,7 @@ async def remove_permissions_from_admin(
             detail="No valid permissions found to remove.",
         )
 
-    # 5) Fetch only those permissions that are actually assigned
+    # 5. Fetch only those permissions that are actually assigned
     try:
         result = await db.execute(
             select(UserPermission.id).where(
@@ -94,18 +94,26 @@ async def remove_permissions_from_admin(
             detail="Error checking assigned permissions.",
         )
 
-    # 6) If no matching assigned permissions found
     if not assigned_user_permission_ids:
         return {"detail": "No assigned permissions found to delete."}
 
-    # 7) Delete only assigned permissions
+    # 6. Delete assigned permissions
     try:
         delete_stmt = delete(UserPermission).where(
             UserPermission.id.in_(assigned_user_permission_ids)
         )
-        result = await db.execute(delete_stmt)
+        await db.execute(delete_stmt)
+
+        # Optional: Nullify assigned_by if current user was the assigner
+        await db.execute(
+            update(UserPermission)
+            .where(UserPermission.assigned_by == user_id)
+            .values(assigned_by=None)
+        )
+
         await db.commit()
-        deleted_count = result.rowcount or 0
+        deleted_count = len(assigned_user_permission_ids)
+
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error("DB error during deletion", exc_info=e)
@@ -120,4 +128,3 @@ async def remove_permissions_from_admin(
     )
 
     return {"detail": f"Removed {deleted_count} assigned permission(s) successfully."}
-# admin permission delete service
