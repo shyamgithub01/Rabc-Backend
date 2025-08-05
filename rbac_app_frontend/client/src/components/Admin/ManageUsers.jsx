@@ -7,11 +7,7 @@ const MODULE_OPTIONS = [
   { id: 26, name: "RDBMS" },
   { id: 27, name: "Reports" },
   { id: 28, name: "Devices" },
-  { id: 29, name: "Users" },
   { id: 30, name: "Dashboard" },
-
-  
-
 ];
 
 const PERMISSION_OPTIONS = ["add", "edit", "delete", "view"];
@@ -40,7 +36,6 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
     const fetchAdminPermissions = async () => {
       const email = getLoggedInEmail();
       const token = localStorage.getItem("access_token");
-
       try {
         const res = await api.get("/users-with-permissions", {
           headers: { Authorization: `Bearer ${token}` },
@@ -53,7 +48,6 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
         console.error("Error fetching current admin permissions", err);
       }
     };
-
     fetchAdminPermissions();
   }, []);
 
@@ -64,6 +58,10 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
     });
     return map;
   }, [adminPermissions]);
+
+  const canDeleteUser = useMemo(() => {
+    return currentAdminPermissionsMap["Users"]?.includes("delete");
+  }, [currentAdminPermissionsMap]);
 
   useEffect(() => {
     const original = {};
@@ -110,7 +108,9 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
       onClose();
     } catch (err) {
       console.error("Save failed", err);
-      const msg = err?.response?.data?.detail || "Failed to save permissions. Try again.";
+      const msg =
+        err?.response?.data?.detail ||
+        "Failed to save permissions. Try again.";
       setError(msg);
     } finally {
       setIsSaving(false);
@@ -137,29 +137,48 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 border border-gray-200">
+    <div className="fixed top-20 h-fit bottom-4 right-4 w-full max-w-md z-50">
+      <div className="bg-white h-fit rounded-xl shadow-xl border p-6 overflow-y-auto">
         <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-200">
           <h3 className="text-xl font-bold text-gray-800">
-            Manage Permissions for <span className="text-gray-700 font-semibold">{user.email}</span>
+            Manage Permissions for{" "}
+            <span className="text-gray-700 font-semibold">{user.email}</span>
           </h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl"
+          >
+            &times;
+          </button>
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-100 text-red-800 border border-red-200 p-3 rounded-md">
-            {error}
+          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="flex items-start">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2 mt-0.5 text-red-600"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>{error}</span>
+            </div>
           </div>
         )}
 
-        <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 pb-2">
+        <div className="space-y-7 max-h-[50vh] overflow-y-auto pr-2 pb-2">
           {MODULE_OPTIONS.map((mod) => {
             const adminHasAccess = currentAdminPermissionsMap[mod.name]?.length > 0;
             if (!adminHasAccess) return null;
 
             const alreadyAssigned = originalPermissions[mod.name] || [];
             const selected = newPermissions[mod.name] || [];
-
             const assignablePermissions = PERMISSION_OPTIONS.filter(
               (perm) =>
                 currentAdminPermissionsMap[mod.name]?.includes(perm) &&
@@ -167,10 +186,17 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
             );
 
             return (
-              <div key={mod.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+              <div
+                key={mod.id}
+                className="border-b border-gray-100 pb-6 last:border-0 last:pb-0"
+              >
                 <div className="flex items-center mb-4">
-                  <h4 className="text-md font-semibold text-gray-700">{mod.name}</h4>
-                  <div className="ml-3 text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">ID: {mod.id}</div>
+                  <h4 className="text-md font-semibold text-gray-700">
+                    {mod.name}
+                  </h4>
+                  <div className="ml-3 text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                    ID: {mod.id}
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3 mb-3">
@@ -187,8 +213,17 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
                         }`}
                       >
                         {isSelected && (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         )}
                         {perm}
@@ -207,39 +242,49 @@ const ManageUsers = ({ user, onClose, onSuccess }) => {
           })}
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <label className="flex items-center text-sm text-red-600 font-medium mb-4">
-            <input
-              type="checkbox"
-              checked={deleteChecked}
-              onChange={(e) => setDeleteChecked(e.target.checked)}
-              className="mr-2 accent-red-600 h-4 w-4"
-            />
-            Delete this user account
-          </label>
+        <div className="mt-7 pt-5 border-t border-gray-200">
+          {canDeleteUser && (
+            <div className="flex items-center mb-6">
+              <input
+                id="delete-user"
+                type="checkbox"
+                checked={deleteChecked}
+                onChange={(e) => setDeleteChecked(e.target.checked)}
+                className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+              />
+              <label
+                htmlFor="delete-user"
+                className="ml-2 text-sm text-red-700 font-medium"
+              >
+                Delete this user account
+              </label>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>
-
-            {deleteChecked && (
+            {canDeleteUser && (
               <button
                 onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 rounded bg-red-100 text-red-800 hover:bg-red-200 border border-red-300 font-semibold"
+                disabled={isDeleting || !deleteChecked}
+                className={`px-5 py-2.5 text-white rounded-lg flex items-center ${
+                  deleteChecked
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-red-300 cursor-not-allowed"
+                }`}
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
             )}
-
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className={`px-4 py-2 rounded text-white ${isSaving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
+              className="px-5 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800"
             >
               {isSaving ? "Saving..." : "Save Changes"}
             </button>

@@ -55,16 +55,16 @@ function LoginPage({ setUserEmail }) {
       <div className="lg:w-1/2 flex items-center justify-center p-8 relative" style={{ height: '100vh' }}>
         <div className="absolute top-4 left-4">
           <img 
-            src="/image2.jpg" 
+            src="/image2.png" 
             alt="Logo" 
             className="w-30 h-30 ml-10 "
           />
         </div>
-        <div className="relative ml-20 mt-10 rounded-2xl w-full max-w-3xl">
+        <div className="relative ml-20 mt-10 rounded-2xl w-full max-w-6xl">
           <img
             src="/image.png" 
             alt="Business Growth" 
-            className="w-full h-auto  rounded-t-full "
+            className="max-w-3xl h-auto   "
             style={{ maxHeight: '80vh' }}
           />
           <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -89,23 +89,13 @@ function LoginPage({ setUserEmail }) {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <div 
-                  className="w-16 h-16 rounded-full flex items-center justify-center transform transition-transform duration-300 hover:scale-105"
-                  style={{ 
-                    background: `linear-gradient(45deg, ${colors.accentGray}, ${colors.buttonGray})`,
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
-                  }}
-                >
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7-4h14" />
-                  </svg>
-                </div>
+                
               </div>
             </div>
             <h1 className="text-4xl font-extrabold mb-2" style={{ color: colors.text }}>
               Business Portal
             </h1>
-            <p className="text-lg font-medium" style={{ color: colors.text }}>
+            <p className="text-lg font-semibold text-blue-400" >
               Access tools for success
             </p>
           </div>

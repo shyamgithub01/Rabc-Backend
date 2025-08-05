@@ -1,160 +1,137 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UserDashboard from "./UserDashboard";
-import { FaChevronLeft, FaChevronRight, FaTachometerAlt, FaLaptop, FaFileAlt } from "react-icons/fa";
 import UserDevices from "./UserDevices";
-import UserReports from "./UserReports";
+import UserReport from "./UserReports";
 
-function UserWelcome({ permissions = { dashboard: true, devices: true, reports: true } }) {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+import {
+  FaTachometerAlt,
+  FaLaptop,
+  FaFileAlt,
+} from "react-icons/fa";
+import api from "../../api";
+
+function UserWelcome() {
+  const [activeTab, setActiveTab] = useState(null);
+  const [permissions, setPermissions] = useState({
+    dashboard: false,
+    devices: false,
+    reports: false,
+  });
+
+  const decodeEmail = () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const [, payload] = token.split(".");
+      return JSON.parse(atob(payload)).sub;
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchUserModules = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const email = decodeEmail();
+
+        const res = await api.get("/users-with-permissions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const user = res.data.find((u) => u.email === email);
+        const moduleNames = user?.modules.map((mod) => mod.module_name) || [];
+
+        const hasDashboard = moduleNames.includes("Dashboard");
+        const hasDevices = moduleNames.includes("Devices");
+        const hasReports = moduleNames.includes("Reports");
+
+        setPermissions({
+          dashboard: hasDashboard,
+          devices: hasDevices,
+          reports: hasReports,
+        });
+
+        if (hasDashboard) setActiveTab("dashboard");
+        else if (hasDevices) setActiveTab("devices");
+        else if (hasReports) setActiveTab("reports");
+        else setActiveTab(null);
+      } catch (err) {
+        console.error("Failed to fetch user permissions", err);
+      }
+    };
+
+    fetchUserModules();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return permissions.dashboard ? <UserDashboard /> : null;
       case "devices":
-        return permissions.devices ? <UserDevices/> : null;
+        return permissions.devices ? <UserDevices /> : null;
       case "reports":
-        return permissions.reports ? <UserReports/> : null;
+        return permissions.reports ? <UserReport /> : null;
       default:
-        return <div className="text-gray-600 p-6 text-center">You don’t have access to any modules.</div>;
+        return (
+          <div className="text-gray-600 p-6 text-center">
+            You don’t have access to any modules.
+          </div>
+        );
     }
   };
 
+  const menuItems = [
+    permissions.dashboard && {
+      key: "dashboard",
+      label: "Dashboard",
+      icon: <FaTachometerAlt />,
+    },
+    permissions.devices && {
+      key: "devices",
+      label: "Devices",
+      icon: <FaLaptop />,
+    },
+    permissions.reports && {
+      key: "reports",
+      label: "Reports",
+      icon: <FaFileAlt />,
+    },
+  ].filter(Boolean);
+
   return (
-    <div className="w-screen h-[90vh] flex bg-gradient-to-br from-[#e7f0ff] to-[#f3f9fd] overflow-hidden m-0 p-0">
-      {/* Sidebar */}
-      <div
-        className={`transition-all duration-[800ms] ease-in-out bg-white text-black border-r border-gray-200 shadow-md ${
-          sidebarOpen ? "w-60" : "w-16"
-        }`}
-      >
-        <div className="flex justify-between items-center p-4 border-b border-gray-900 relative">
-          {sidebarOpen && (
-            <span className="ml-3 font-bold mt-2 flex space-x-[1px] overflow-hidden">
-              {"User Portal".split("").map((char, index) => (
-                <span
-                  key={index}
-                  className="text-base opacity-0 animate-fade-in"
-                  style={{
-                    animationDelay: `${index * 50 + 300}ms`,
-                    animationFillMode: "forwards",
-                  }}
-                >
-                  {char === " " ? "\u00A0" : char}
-                </span>
-              ))}
-            </span>
-          )}
-          <button
-            className="absolute mt-150 ml-4 -right-4 top-1/2 transform -translate-y-1/2 bg-white p-3 rounded-full shadow border text-gray-600 hover:text-gray-800 hover:scale-110 transition-all z-10"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <FaChevronLeft size={22} /> : <FaChevronRight size={22} />}
-          </button>
+    <div
+      className="w-full flex bg-gradient-to-br from-[#e7f0ff] to-[#f3f9fd] overflow-x-hidden"
+      style={{ height: "calc(100vh - 67px)" }}
+    >
+      {/* Static Sidebar */}
+      <div className="w-60 bg-gray-900 text-white flex flex-col border-r border-gray-200">
+        <div className="px-6 py-5 border-b border-gray-800">
+          <h1 className="text-lg font-bold tracking-wide text-white">IoT Portal</h1>
+          <p className="text-xs text-gray-400">User Access</p>
         </div>
 
-        <div className="p-4">
-          <nav>
-            <ul className="space-y-2">
-              {permissions.dashboard && (
-                <li>
-                  <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className={`w-full mt-6 flex rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
-                      activeTab === "dashboard"
-                        ? "min-w-xl bg-gray-900 text-white font-semibold"
-                        : "text-gray-700 min-w-xl hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="min-w-[1.75rem] text-xl flex justify-center items-center">
-                      <FaTachometerAlt />
-                    </span>
-                    {sidebarOpen && (
-                      <span className="ml-3 flex space-x-[1px] overflow-hidden">
-                        {"Dashboard".split("").map((char, index) => (
-                          <span
-                            key={index}
-                            className="text-base opacity-0 animate-fade-in"
-                            style={{
-                              animationDelay: `${index * 50 + 300}ms`,
-                              animationFillMode: "forwards",
-                            }}
-                          >
-                            {char === " " ? "\u00A0" : char}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              )}
-              {permissions.devices && (
-                <li>
-                  <button
-                    onClick={() => setActiveTab("devices")}
-                    className={`w-full flex rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
-                      activeTab === "devices"
-                        ? "min-w-xl bg-gray-900 text-white font-semibold"
-                        : "text-gray-700 min-w-xl hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="min-w-[1.75rem] text-xl flex justify-center items-center">
-                      <FaLaptop />
-                    </span>
-                    {sidebarOpen && (
-                      <span className="ml-3 flex space-x-[1px] overflow-hidden">
-                        {"Devices".split("").map((char, index) => (
-                          <span
-                            key={index}
-                            className="text-base opacity-0 animate-fade-in"
-                            style={{
-                              animationDelay: `${index * 50 + 300}ms`,
-                              animationFillMode: "forwards",
-                            }}
-                          >
-                            {char === " " ? "\u00A0" : char}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              )}
-              {permissions.reports && (
-                <li>
-                  <button
-                    onClick={() => setActiveTab("reports")}
-                    className={`w-full flex rounded-md font-medium transition-all duration-[800ms] ease-in-out px-3 py-2 ${
-                      activeTab === "reports"
-                        ? "min-w-xl bg-gray-900 text-white font-semibold"
-                        : "text-gray-700 min-w-xl hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="min-w-[1.75rem] text-xl flex justify-center items-center">
-                      <FaFileAlt />
-                    </span>
-                    {sidebarOpen && (
-                      <span className="ml-3 flex space-x-[1px] overflow-hidden">
-                        {"Reports".split("").map((char, index) => (
-                          <span
-                            key={index}
-                            className="text-base opacity-0 animate-fade-in"
-                            style={{
-                              animationDelay: `${index * 50 + 300}ms`,
-                              animationFillMode: "forwards",
-                            }}
-                          >
-                            {char === " " ? "\u00A0" : char}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              )}
-            </ul>
-          </nav>
+        <nav className="flex-1 px-2 py-4">
+          <ul className="space-y-1">
+            {menuItems.map((item) => (
+              <li key={item.key}>
+                <button
+                  onClick={() => setActiveTab(item.key)}
+                  className={`w-full flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                    activeTab === item.key
+                      ? "bg-white text-gray-900 font-semibold shadow-sm"
+                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  }`}
+                >
+                  <span className="mr-3 text-base">{item.icon}</span>
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="px-4 py-4 text-xs text-gray-500 border-t border-gray-800">
+          &copy; {new Date().getFullYear()} IoT Solutions
         </div>
       </div>
 
@@ -164,8 +141,6 @@ function UserWelcome({ permissions = { dashboard: true, devices: true, reports: 
           <div className="py-6">{renderContent()}</div>
         </div>
       </div>
-
-     
     </div>
   );
 }
