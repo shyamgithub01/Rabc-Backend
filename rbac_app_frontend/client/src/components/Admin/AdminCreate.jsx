@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import api from "../../api";
 
 export default function AdminCreate({ onSuccess }) {
@@ -7,6 +7,10 @@ export default function AdminCreate({ onSuccess }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Create unique IDs for accessibility
+  const emailId = useRef(`email-${Math.random().toString(36).substring(2, 11)}`).current;
+  const passwordId = useRef(`password-${Math.random().toString(36).substring(2, 11)}`).current;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -14,11 +18,28 @@ export default function AdminCreate({ onSuccess }) {
   };
 
   const generatePassword = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-    let password = "";
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const digits = "0123456789";
+    const symbols = "!@#$%^&*()";
+    
+    // Ensure password contains at least one character from each set
+    let password = [
+      uppercase[Math.floor(Math.random() * uppercase.length)],
+      lowercase[Math.floor(Math.random() * lowercase.length)],
+      digits[Math.floor(Math.random() * digits.length)],
+      symbols[Math.floor(Math.random() * symbols.length)]
+    ].join('');
+    
+    // Fill remaining characters with combined set
+    const allChars = uppercase + lowercase + digits + symbols;
+    for (let i = password.length; i < 12; i++) {
+      password += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
+    
+    // Shuffle the password characters
+    password = password.split('').sort(() => 0.5 - Math.random()).join('');
+    
     setFormData({ ...formData, password });
   };
 
@@ -40,7 +61,13 @@ export default function AdminCreate({ onSuccess }) {
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || "Failed to create admin.");
+      // Handle validation errors (422 status)
+      if (err.response?.status === 422 && Array.isArray(err.response?.data?.detail)) {
+        const errorMessages = err.response.data.detail.map(d => d.msg);
+        setError(errorMessages.join(". "));
+      } else {
+        setError(err.response?.data?.detail || "Failed to create admin.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -48,9 +75,6 @@ export default function AdminCreate({ onSuccess }) {
 
   return (
     <div className=" ">
-      {/* Close Button */}
-     
-
       <h2 className="text-xl font-semibold mb-4 border-b pb-2">Create Admin</h2>
 
       {error && (
@@ -68,8 +92,14 @@ export default function AdminCreate({ onSuccess }) {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label 
+            htmlFor={emailId}
+            className="block text-sm font-medium mb-1"
+          >
+            Email
+          </label>
           <input
+            id={emailId}
             type="email"
             name="email"
             value={formData.email}
@@ -83,7 +113,12 @@ export default function AdminCreate({ onSuccess }) {
         {/* Password */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium">Password</label>
+            <label 
+              htmlFor={passwordId}
+              className="block text-sm font-medium"
+            >
+              Password
+            </label>
             <button
               type="button"
               onClick={generatePassword}
@@ -94,6 +129,7 @@ export default function AdminCreate({ onSuccess }) {
           </div>
           <div className="relative">
             <input
+              id={passwordId}
               type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
@@ -106,6 +142,7 @@ export default function AdminCreate({ onSuccess }) {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-2 top-2 text-xs text-gray-500 hover:text-black"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? "Hide" : "Show"}
             </button>

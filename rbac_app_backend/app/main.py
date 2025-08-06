@@ -1,3 +1,4 @@
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,7 +15,7 @@ from app.api.users.admin_permission_update import router as admin_manage_permiss
 from app.api.users.admin_delete import router as delete_permission
 from app.api.users.create_user import router as create_user
 from app.api.users.user_with_permissions import router as users_with_permission
-
+from app.api.users.generate_report import router as generate_report
 from app.api.users.user_delete import router as users_permission_delete
 from app.api.users.user_permission_update import router as users_permission_update
 
@@ -30,12 +31,12 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     lifespan=lifespan,
-    # docs_url="/docs", redoc_url="/redoc"  # keep defaults; change if you want
+   
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # e.g. ["http://localhost:3000"]
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,13 +49,15 @@ async def health():
 
 
 # --- Include routers ---
-app.include_router(login.router)                  # POST /login (public)
-app.include_router(signup.router)                 # POST /signup (public)
+app.include_router(login.router)                  
+app.include_router(signup.router)                 
 app.include_router(create_admin)
 app.include_router(users_with_permission)
 app.include_router(admin_manage_permission)
 app.include_router(delete_permission)
 app.include_router(create_user)
+app.include_router(generate_report)
+
 
 app.include_router(users_permission_delete)
 app.include_router(users_permission_update)
@@ -85,8 +88,8 @@ def custom_openapi():
     PUBLIC_PATHS = {
         "/login",
         "/signup",
-        "/",          # health
-        # add more here if needed
+        "/",          
+        
     }
 
     # Apply security to all non-public operations
@@ -105,3 +108,7 @@ def custom_openapi():
 
 # Apply the OpenAPI override
 app.openapi = custom_openapi
+
+
+
+

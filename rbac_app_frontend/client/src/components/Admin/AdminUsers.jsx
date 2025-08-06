@@ -47,8 +47,8 @@ function AdminUsers() {
   };
 
   useEffect(() => {
-  fetchUsers();
-}, []);
+    fetchUsers();
+  }, []);
 
   const openManageUser = (user) => {
     setSelectedUser(user);
@@ -68,7 +68,6 @@ function AdminUsers() {
     .filter((u) => u.role === "user" && u.created_by === adminId)
     .filter((u) => u.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // ✅ Permission checks
   const userModulePermissions = useMemo(() => {
     const usersModule = adminPermissions.find((m) => m.module_name === "Users");
     return usersModule?.permissions || [];
@@ -79,45 +78,28 @@ function AdminUsers() {
 
   return (
     <div className="pt-5 ml-3 px-4 sm:px-6 max-w-lvw mx-auto">
+      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Manage Users</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Create and manage user accounts
-          </p>
+          <h2 className="text-3xl font-extrabold text-gray-800">Manage Users</h2>
+          <p className="text-sm text-gray-500 mt-1">Create and manage user accounts</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchUsers}
             title="Refresh"
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+            className="p-2 text-blue-600 bg-white border border-blue-200 hover:bg-blue-100 rounded-full shadow transition"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.023 9.348h4.992M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.333-2.707A9 9 0 016.582 18.418M4 20v-5h.582" />
             </svg>
           </button>
           {canAddUser && (
             <button
               onClick={openCreateModal}
-              className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 shadow hover:scale-105 transition"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
                   d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -130,7 +112,8 @@ function AdminUsers() {
         </div>
       </div>
 
-      <div className="flex mb-4">
+      {/* Search */}
+      <div className="mb-4">
         <input
           type="text"
           placeholder="Search by email..."
@@ -140,13 +123,14 @@ function AdminUsers() {
         />
       </div>
 
+      {/* Loading/Error/Table */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-700"></div>
+          <div className="w-14 h-14 rounded-full border-4 border-t-blue-600 border-b-blue-300 animate-spin"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <h3 className="text-xl font-medium text-red-700">Error Loading Data</h3>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center shadow">
+          <h3 className="text-xl font-semibold text-red-700">Error Loading Data</h3>
           <p className="text-red-600 mt-2">{error}</p>
           <button
             onClick={fetchUsers}
@@ -156,51 +140,40 @@ function AdminUsers() {
           </button>
         </div>
       ) : canViewUsers ? (
-        <div className="overflow-x-auto border">
-          <table className="min-w-full divide-y divide-gray-200 text-sm table-fixed border">
-            <thead className="bg-gray-50 sticky top-0 z-10">
+        <div className="overflow-x-auto border rounded-xl shadow-lg bg-white">
+          <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
+            <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
-                  Permissions
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider border">
-                  Actions
-                </th>
+                <th className="px-6 py-4 font-semibold">Email</th>
+                <th className="px-6 py-4 font-semibold">Role</th>
+                <th className="px-6 py-4 font-semibold">Permissions</th>
+                <th className="px-6 py-4 text-center font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {filteredUsers.map((user) => {
                 const filteredModules = (user.modules || []).filter(
                   (mod) =>
-                    !(
-                      mod.permissions.length === 1 &&
-                      mod.permissions[0] === "view"
-                    )
+                    !(mod.permissions.length === 1 && mod.permissions[0] === "view")
                 );
 
                 return (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-1 py-4 text-center whitespace-nowrap text-gray-800 border">
+                  <tr key={user.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">
                       {user.email}
                     </td>
-                    <td className="px-1 py-4 text-center border">
-                      <span className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium capitalize">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full text-xs font-semibold shadow-sm capitalize">
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-1 py-4 text-center text-gray-700 max-w-xl border">
+                    <td className="px-6 py-4 max-w-xl">
                       <div className="flex flex-wrap gap-2">
                         {filteredModules.length > 0 ? (
                           filteredModules.map((mod, idx) => (
                             <span
                               key={idx}
-                              className="inline-flex items-center px-2 py-1 bg-gray-100 border rounded text-xs text-gray-700"
+                              className="inline-flex items-center px-2 py-1 bg-slate-100 border rounded-full text-xs text-gray-700 shadow-sm hover:scale-[1.03] transition cursor-default"
                               title={`${mod.module_name}: ${mod.permissions.join(", ")}`}
                             >
                               <span className="font-semibold text-gray-600 mr-1">
@@ -216,10 +189,10 @@ function AdminUsers() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center border">
+                    <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => openManageUser(user)}
-                        className="text-blue-600 hover:text-blue-800 font-medium transition duration-150 ease-in-out"
+                        className="text-indigo-600 hover:text-indigo-800 font-medium transition duration-150 ease-in-out"
                       >
                         Manage
                       </button>
@@ -236,25 +209,44 @@ function AdminUsers() {
         </div>
       )}
 
+      {/* Manage User Side Panel */}
       {modalType === "manageUser" && selectedUser && (
-        <ManageUsers
-          user={selectedUser}
-          onClose={closeModal}
-          onSuccess={fetchUsers}
-        />
+        <div className="fixed top-20 bottom-4 right-4 w-full max-w-md z-50">
+          <div className="bg-white rounded-xl shadow-xl border p-6 h-fit overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Manage Permissions for{" "}
+                <span className="font-normal">{selectedUser.email}</span>
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                &times;
+              </button>
+            </div>
+            <ManageUsers
+              user={selectedUser}
+              onClose={closeModal}
+              onSuccess={fetchUsers}
+            />
+          </div>
+        </div>
       )}
 
+      {/* Create User Side Panel */}
       {modalType === "createUser" && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-center items-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg relative p-6">
+        <div className="fixed top-20 right-4 bottom-2 h-fit w-full max-w-md bg-white rounded-xl shadow-xl border p-6 overflow-y-auto z-50">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Create User</h3>
             <button
               onClick={closeModal}
-              className="absolute top-3 right-4 text-gray-600 hover:text-black text-xl"
+              className="text-gray-500 hover:text-gray-700 text-xl"
             >
               &times;
             </button>
-            <UserCreate onClose={closeModal} onSuccess={fetchUsers} />
           </div>
+          <UserCreate onClose={closeModal} onSuccess={fetchUsers} />
         </div>
       )}
     </div>
