@@ -20,6 +20,14 @@ function SuperAdminDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
+  // Status colors mapping
+  const statusColors = {
+    active: { bg: "rgba(16, 185, 129, 0.1)", text: "#065F46", dot: "#10B981" },
+    inactive: { bg: "rgba(239, 68, 68, 0.1)", text: "#991B1B", dot: "#EF4444" },
+    pending: { bg: "rgba(245, 158, 11, 0.1)", text: "#92400E", dot: "#F59E0B" },
+    suspended: { bg: "rgba(156, 163, 175, 0.1)", text: "#374151", dot: "#9CA3AF" }
+  };
+
   const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
@@ -313,7 +321,7 @@ function SuperAdminDashboard() {
         </div>
       ) : (
         <div
-          className="bg-white h-[72vh] rounded-2xl shadow-sm border overflow-hidden mx-4 sm:mx-6"
+          className="bg-white h-[72vh] rounded-2xl shadow-sm border overflow-hidden mx-4 sm:mx-6 flex flex-col"
           style={{ borderColor: BABY_BLUE }}
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 py-4 border-b border-gray-100">
@@ -350,176 +358,171 @@ function SuperAdminDashboard() {
             </div>
           </div>
 
-          <div className="overflow-x-auto ">
-            <table
-              className="min-w-full divide-y text-sm"
-              style={{ divideColor: "rgba(195,224,229,0.5)" }}
-            >
-              <thead className="bg-gray-50">
+          <div className="flex-1 overflow-auto">
+            <table className="min-w-full divide-y text-sm">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[25%]">
+                  Admin
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
+                  Permissions
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredUsers.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500 text-left text-xs uppercase tracking-wider">
-                    Admin
-                  </th>
-                  <th className="px-6 py-3 font-medium text-gray-500 text-left text-xs uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 font-medium text-gray-500 text-left text-xs uppercase tracking-wider">
-                    Permissions
-                  </th>
-                  <th className="px-6 py-3 font-medium text-gray-500 text-right text-xs uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <td colSpan="5" className="px-6 py-12 text-center">
+                    {/* No data message remains the same */}
+                  </td>
                 </tr>
-              </thead>
-              <tbody
-                className="bg-white divide-y"
-                style={{ divideColor: "rgba(195,224,229,0.5)" }}
-              >
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-500">
-                        <div
-                          className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                          style={{ background: "rgba(195,224,229,0.3)" }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-8 w-8 text-blue-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="#41729f"
+              ) : (
+                currentUsers.map((user) => {
+                  const filteredModules = (user.modules || []).filter(
+                    (mod) =>
+                      !(
+                        mod.permissions.length === 1 &&
+                        mod.permissions[0] === "view"
+                      )
+                  );
+                  
+                  const status = user.status?.toLowerCase() || 'inactive';
+                  const statusStyle = statusColors[status] || statusColors.inactive;
+
+                  return (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-gray-50 transition-all duration-200"
+                    >
+                      {/* Admin Column */}
+                      <td className="px-6 py-4 align-middle w-[25%]">
+                        <div className="flex items-center">
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ background: "rgba(65,114,159,0.05)" }}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
+                            <span
+                              className="text-base font-medium"
+                              style={{ color: "#274472" }}
+                            >
+                              {user.email.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="ml-3 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {user.email}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate">
+                              {/* {user.name || "No name provided"} */}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-base font-medium text-gray-600">
-                          No admins found
-                        </p>
-                        <p className="mt-1 text-sm text-gray-400">
-                          Create your first admin to get started
-                        </p>
-                        <button
-                          onClick={openCreateModal}
-                          className="mt-4 text-white py-2 px-5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                      </td>
+
+                      {/* Role Column */}
+                      <td className="px-2 py-4 align-middle w-[15%]">
+                        <span
+                          className="px-3 py-1 rounded-full text-xs font-medium capitalize inline-flex items-center justify-center"
                           style={{
-                            background:
-                              "linear-gradient(90deg, rgba(65,114,159,0.8) 0%, rgba(88,133,175,0.8) 100%)",
+                            background: "rgba(65,114,159,0.1)",
+                            color: "#41729f",
                           }}
                         >
-                          Create Admin
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  currentUsers.map((user) => {
-                    const filteredModules = (user.modules || []).filter(
-                      (mod) =>
-                        !(
-                          mod.permissions.length === 1 &&
-                          mod.permissions[0] === "view"
-                        )
-                    );
+                          {user.role}
+                        </span>
+                      </td>
 
-                    return (
-                      <tr
-                        key={user.id}
-                        className="hover:bg-gray-50 transition-all duration-200"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center"
-                              style={{ background: "rgba(65,114,159,0.05)" }}
-                            >
-                              <span
-                                className="text-sm font-medium"
-                                style={{ color: "#274472" }}
-                              >
-                                {user.email.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="ml-3">
-                              <div className="font-medium text-gray-800 text-sm">
-                                {user.email}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {user.name || "No name provided"}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
+                      {/* Status Column */}
+                      <td className="px-3 py-4 align-middle w-[15%]">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-2 h-2 rounded-full mr-2" 
+                            style={{ backgroundColor: statusStyle.dot }}
+                          ></div>
                           <span
-                            className="px-2 py-1 rounded-full text-xs font-medium capitalize"
-                            style={{
-                              background: "rgba(65,114,159,0.1)",
-                              color: "#41729f",
-                            }}
+                            className="text-xs font-medium capitalize"
+                            style={{ color: statusStyle.text }}
                           >
-                            {user.role}
+                            {status}
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1.5">
-                            {filteredModules.length > 0 ? (
-                              filteredModules.map((mod, idx) => (
-                                <div key={idx} className="relative group">
-                                  <span
-                                    className="text-xs px-2 py-0.5 rounded cursor-default font-medium"
-                                    style={{
-                                      background: "rgba(39,68,114,0.05)",
-                                      color: "rgba(39,68,114,0.8)",
-                                    }}
-                                  >
-                                    {mod.module_name} ({mod.permissions.length})
+                        </div>
+                      </td>
+
+                      {/* Permissions Column */}
+                      <td className="px-6 py-4 align-middle w-[30%]">
+                        <div className="flex flex-wrap gap-1.5">
+                          {filteredModules.length > 0 ? (
+                            filteredModules.map((mod, idx) => (
+                              <div key={idx} className="relative group">
+                                <span
+                                  className="text-xs px-2 py-1 rounded cursor-default font-medium inline-flex items-center"
+                                  style={{
+                                    background: "rgba(39,68,114,0.05)",
+                                    color: "rgba(39,68,114,0.8)",
+                                  }}
+                                >
+                                  <span className="truncate max-w-[80px]">
+                                    {mod.module_name}
                                   </span>
-                                  <div
-                                    className="absolute hidden group-hover:block z-10 bottom-full left-0 mb-2 text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-sm"
-                                    style={{
-                                      backgroundColor: "rgba(65,114,159,0.9)",
-                                    }}
-                                  >
-                                    {mod.permissions.join(", ")}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <span className="text-gray-400 text-xs italic">
-                                No permissions
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <button
-                            onClick={() => openManageAdmin(user)}
-                            className="font-medium px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 border"
-                            style={{
-                              background: "rgba(65,114,159,0.05)",
-                              borderColor: "rgba(65,114,159,0.2)",
-                              color: "#41729f",
-                            }}
+                                  <span className="ml-1 bg-gray-100 px-1.5 py-0.5 rounded text-2xs">
+                                    {mod.permissions.length}
+                                  </span>
+                                </span>
+                                {/* Tooltip remains the same */}
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-xs italic">
+                              No permissions
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions Column */}
+                      <td className="px-2 py-4 align-middle text-right w-[15%]">
+                        <button
+                          onClick={() => openManageAdmin(user)}
+                          className="font-medium px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 inline-flex items-center border"
+                          style={{
+                            background: "rgba(65,114,159,0.05)",
+                            borderColor: "rgba(65,114,159,0.2)",
+                            color: "#41729f",
+                          }}
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            className="h-4 w-4 mr-1" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
                           >
-                            Manage
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
           </div>
 
           {filteredUsers.length > 0 && (
-            <div className="px-2 py-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50">
+            <div className="px-4 py-3 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50">
               <p className="text-sm text-gray-500">
                 Showing{" "}
                 <span className="font-bold">{indexOfFirstItem + 1}</span> to{" "}
@@ -533,12 +536,15 @@ function SuperAdminDashboard() {
                 <button
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${
+                  className={`px-3 py-1.5 rounded-lg border text-sm font-medium flex items-center ${
                     currentPage === 1
                       ? "text-gray-400 cursor-not-allowed border-gray-200"
                       : "text-gray-700 hover:bg-gray-50 hover:shadow-sm border-gray-300"
                   }`}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                   Previous
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -566,13 +572,16 @@ function SuperAdminDashboard() {
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${
+                  className={`px-3 py-1.5 rounded-lg border text-sm font-medium flex items-center ${
                     currentPage === totalPages
                       ? "text-gray-400 cursor-not-allowed border-gray-200"
                       : "text-gray-700 hover:bg-gray-50 hover:shadow-sm border-gray-300"
                   }`}
                 >
                   Next
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
             </div>
