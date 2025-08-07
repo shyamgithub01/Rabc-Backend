@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import decodeToken from "../utils/decodeToken";
+import Navbar from "../components/Navbar"
+
+// Color constants
+const MIDNIGHT_BLUE = "#41729f";
+const BLUE_GRAY = "#5885af";
+const DARK_BLUE = "#274472";
+const BABY_BLUE = "#c3e0e5";
 
 function LoginPage({ setUserEmail }) {
   const [email, setEmail] = useState("");
@@ -11,15 +18,16 @@ function LoginPage({ setUserEmail }) {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Updated color palette
   const colors = {
-    background: "#FFFFFF", // White background
-    formBackground: "#FFFFFF",
-    accentGray: "#4B5563",
-    buttonGray: "#000000",
-    text: "#000000",
-    iconGray: "#6B7280",
-    placeholder: "#9CA3AF",
-    teal: "#14B8A6",
+    background: BABY_BLUE,               // Soft baby blue background
+    formBackground: "#FFFFFF",            // White form background
+    accentGray: MIDNIGHT_BLUE,            // Primary text and border color
+    buttonGray: DARK_BLUE,                // Button background
+    text: DARK_BLUE,                     // Main text color
+    iconGray: BLUE_GRAY,                  // Icon color
+    placeholder: "#9CA3AF",               // Placeholder color
+    accentLight: BLUE_GRAY,               // Secondary accent color
   };
 
   const handleLogin = async (e) => {
@@ -48,32 +56,35 @@ function LoginPage({ setUserEmail }) {
   };
 
   return (
+    
     <div
+    
       className="min-h-screen w-screen flex flex-col lg:flex-row relative overflow-hidden font-montserrat"
       style={{ height: "100vh", width: "100vw", background: colors.background }}
-    >
+    ><Navbar/>
       <div
         className="lg:w-1/2 flex items-center justify-center p-8 relative"
         style={{ height: "100vh" }}
       >
         <div className="absolute top-4 left-4">
-          <img src="/image2.png" alt="Logo" className="w-30 h-30 ml-10 " />
+          <img src="image2.png" alt="Logo" className="w-30 h-30 ml-10" />
         </div>
         <div className="relative ml-20 mt-10 rounded-2xl w-full max-w-6xl">
           <img
             src="/image.png"
             alt="Business Growth"
-            className="max-w-3xl h-auto   "
+            className="max-w-5xl h-auto"
             style={{ maxHeight: "80vh" }}
           />
           <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
             {[...Array(10)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full bg-teal-200 opacity-50"
+                className="absolute rounded-full opacity-30"
                 style={{
-                  width: `${Math.random() * 10 + 5}px`,
-                  height: `${Math.random() * 10 + 5}px`,
+                  backgroundColor: MIDNIGHT_BLUE,
+                  width: `${Math.random() * 8 + 4}px`,
+                  height: `${Math.random() * 8 + 4}px`,
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
                 }}
@@ -87,28 +98,28 @@ function LoginPage({ setUserEmail }) {
         className="lg:w-1/2 flex items-center justify-center p-4 lg:p-8 relative z-10"
         style={{ height: "100vh" }}
       >
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="relative"></div>
-            </div>
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-10">
             <h1
-              className="text-4xl font-extrabold mb-2"
+              className="text-5xl font-extrabold mb-3"
               style={{ color: colors.text }}
             >
               Business Portal
             </h1>
-            <p className="text-lg font-semibold text-blue-400">
+            <p
+              className="text-base font-medium"
+              style={{ color: colors.accentLight }}
+            >
               Access tools for success
             </p>
           </div>
 
           <div
-            className="rounded-2xl p-6 lg:p-8 shadow-2xl transform transition-all duration-300 hover:shadow-3xl"
+            className="rounded-2xl p-8 lg:p-10 shadow-2xl transform transition-all duration-300 hover:shadow-3xl"
             style={{
               backgroundColor: colors.formBackground,
               border: `1px solid ${colors.accentGray}20`,
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+              boxShadow: `0 12px 40px ${MIDNIGHT_BLUE}33`,
             }}
           >
             {responseMsg && (
@@ -130,11 +141,11 @@ function LoginPage({ setUserEmail }) {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-7">
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold mb-2 uppercase tracking-wide"
+                  className="block text-sm font-semibold mb-2 uppercase tracking-normal"
                   style={{ color: colors.accentGray }}
                 >
                   Email Address
@@ -162,18 +173,21 @@ function LoginPage({ setUserEmail }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white text-black placeholder-gray-400 pl-10"
+                    className="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#274472] focus:border-[#274472] bg-white text-black placeholder-gray-400 pl-10"
                     style={{ borderColor: colors.accentGray }}
                     placeholder="email@business.com"
                   />
-                  <div className="absolute left-0 bottom-0 h-1 w-full bg-gray-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></div>
+                  <div
+                    className="absolute left-0 bottom-0 h-1 w-full transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"
+                    style={{ backgroundColor: colors.accentGray }}
+                  ></div>
                 </div>
               </div>
 
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold mb-2 uppercase tracking-wide"
+                  className="block text-sm font-semibold mb-2 uppercase tracking-normal"
                   style={{ color: colors.accentGray }}
                 >
                   Password
@@ -201,7 +215,7 @@ function LoginPage({ setUserEmail }) {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white text-black placeholder-gray-400 pr-10 pl-10"
+                    className="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#274472] focus:border-[#274472] bg-white text-black placeholder-gray-400 pr-10 pl-10"
                     style={{ borderColor: colors.accentGray }}
                     placeholder="••••••••"
                   />
@@ -246,7 +260,10 @@ function LoginPage({ setUserEmail }) {
                       </svg>
                     )}
                   </button>
-                  <div className="absolute left-0 bottom-0 h-1 w-full bg-gray-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></div>
+                  <div
+                    className="absolute left-0 bottom-0 h-1 w-full transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"
+                    style={{ backgroundColor: colors.accentGray }}
+                  ></div>
                 </div>
               </div>
 
@@ -254,7 +271,7 @@ function LoginPage({ setUserEmail }) {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 px-6 rounded-xl font-bold text-white transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="login-button w-full py-4 px-6 rounded-xl font-bold text-white transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: colors.buttonGray }}
                 >
                   {isLoading ? (
@@ -287,7 +304,7 @@ function LoginPage({ setUserEmail }) {
               </div>
 
               <div
-                className="text-sm mt-4 flex items-center justify-center"
+                className="text-xs mt-4 flex items-center justify-center"
                 style={{ color: colors.iconGray }}
               >
                 <svg
@@ -308,13 +325,13 @@ function LoginPage({ setUserEmail }) {
             </form>
           </div>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-10 flex justify-center">
             <div className="flex items-center">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
                   className="w-2 h-2 rounded-full mx-1"
-                  style={{ backgroundColor: colors.buttonGray }}
+                  style={{ backgroundColor: colors.accentGray }}
                 ></div>
               ))}
               <span
@@ -329,17 +346,20 @@ function LoginPage({ setUserEmail }) {
       </div>
 
       <style>{`
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-  .font-montserrat {
-    font-family: 'Montserrat', sans-serif;
-  }
-  input::placeholder {
-    color: ${colors.placeholder};
-  }
-  .group:hover .group-hover\\:scale-x-100 {
-    transform: scaleX(1);
-  }
-`}</style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+        .font-montserrat {
+          font-family: 'Montserrat', sans-serif;
+        }
+        input::placeholder {
+          color: ${colors.placeholder};
+        }
+        .group:hover .group-hover\\:scale-x-100 {
+          transform: scaleX(1);
+        }
+        .login-button:hover:not([disabled]) {
+          background-color: ${BLUE_GRAY} !important;
+        }
+      `}</style>
     </div>
   );
 }

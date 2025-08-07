@@ -1,6 +1,11 @@
 import React, { useState, useRef } from "react";
 import api from "../../api";
 
+const MIDNIGHT_BLUE = "#41729f";
+const BLUE_GRAY = "#5885af";
+const DARK_BLUE = "#274472";
+const BABY_BLUE = "#c3e0e5";
+
 export default function AdminCreate({ onSuccess }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,29 +79,30 @@ export default function AdminCreate({ onSuccess }) {
   };
 
   return (
-    <div className=" ">
-      <h2 className="text-xl font-semibold mb-4 border-b pb-2">Create Admin</h2>
+    <div className="max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-6" style={{ color: DARK_BLUE }}>Create New Admin</h2>
 
       {error && (
-        <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 p-2">
+        <div className="mb-6 p-3 text-sm font-medium text-red-700 bg-red-50 rounded-md border border-red-200">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 text-sm text-green-600 bg-green-50 border border-green-200 p-2">
+        <div className="mb-6 p-3 text-sm font-medium text-green-700 bg-green-50 rounded-md border border-green-200">
           {success}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email */}
-        <div>
+        <div className="space-y-2">
           <label 
             htmlFor={emailId}
-            className="block text-sm font-medium mb-1"
+            className="block text-sm font-medium" 
+            style={{ color: BLUE_GRAY }}
           >
-            Email
+            Email address
           </label>
           <input
             id={emailId}
@@ -105,24 +111,35 @@ export default function AdminCreate({ onSuccess }) {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black"
+            className="w-full px-4 py-2.5 text-base border rounded-md focus:outline-none focus:ring-2"
+            style={{ 
+              borderColor: BABY_BLUE,
+              focusRingColor: MIDNIGHT_BLUE,
+              focusBorderColor: 'transparent'
+            }}
             placeholder="admin@example.com"
           />
         </div>
 
         {/* Password */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <label 
               htmlFor={passwordId}
               className="block text-sm font-medium"
+              style={{ color: BLUE_GRAY }}
             >
               Password
             </label>
             <button
               type="button"
               onClick={generatePassword}
-              className="text-xs bg-gray-800 text-white px-3 py-1 hover:bg-gray-800"
+              className="text-xs font-semibold px-3 py-1.5 rounded transition-colors"
+              style={{ 
+                backgroundColor: MIDNIGHT_BLUE,
+                color: '#ffffff',
+                hover: { backgroundColor: DARK_BLUE }
+              }}
             >
               Generate
             </button>
@@ -135,18 +152,30 @@ export default function AdminCreate({ onSuccess }) {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 px-3 py-2 text-sm pr-10 focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full px-4 py-2.5 text-base border rounded-md pr-12 focus:outline-none focus:ring-2"
+              style={{ 
+                borderColor: BABY_BLUE,
+                focusRingColor: MIDNIGHT_BLUE,
+                focusBorderColor: 'transparent'
+              }}
               placeholder="••••••••"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-2 text-xs text-gray-500 hover:text-black"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium transition-colors"
+              style={{ 
+                color: BLUE_GRAY,
+                hover: { color: DARK_BLUE }
+              }}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+          <p className="text-xs" style={{ color: BLUE_GRAY }}>
+            Password must be at least 8 characters with uppercase, lowercase, number, and symbol.
+          </p>
         </div>
 
         {/* Submit */}
@@ -154,11 +183,12 @@ export default function AdminCreate({ onSuccess }) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-2 text-sm text-white font-semibold ${
-              isSubmitting
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-gray-800 hover:bg-black"
-            }`}
+            className="w-full py-3 px-4 text-base font-semibold text-white rounded-md transition-colors"
+            style={{
+              backgroundColor: isSubmitting ? '#6b7280' : MIDNIGHT_BLUE,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              focusRingColor: DARK_BLUE
+            }}
           >
             {isSubmitting ? "Creating..." : "Create Admin"}
           </button>
